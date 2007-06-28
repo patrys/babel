@@ -357,12 +357,13 @@ babel: error: incorrect number of arguments
 usage: babel command [options] [args]
 
 options:
-  --version   show program's version number and exit
-  -h, --help  show this help message and exit
+  --version       show program's version number and exit
+  -h, --help      show this help message and exit
+  --list-locales  print all known locales and exit
 
 commands:
-  extract     extract messages from source files and generate a pot file
-  init        create new message catalogs from a template
+  extract  extract messages from source files and generate a pot file
+  init     create new message catalogs from a template
 """, sys.stdout.getvalue().lower())
 
     def test_extract_with_default_mapping(self):
