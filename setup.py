@@ -135,7 +135,7 @@ setup(
 
     entry_points = """
     [console_scripts]
-    babel = babel.messages.frontend:main
+    pybabel = babel.messages.frontend:main
     
     [distutils.commands]
     extract_messages = babel.messages.frontend:extract_messages
