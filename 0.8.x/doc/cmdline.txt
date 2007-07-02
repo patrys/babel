@@ -14,10 +14,10 @@ systems.
 .. sectnum::
 
 
-When properly installed, Babel provides a script called ``babel``::
+When properly installed, Babel provides a script called ``pybabel``::
 
-    $ babel --help
-    usage: babel subcommand [options] [args]
+    $ pybabel --help
+    usage: pybabel subcommand [options] [args]
 
     options:
       --version             show program's version number and exit
@@ -27,8 +27,8 @@ When properly installed, Babel provides a script called ``babel``::
       extract   extract messages from source files and generate a POT file
       init      create new message catalogs from a template
 
-The ``babel`` script provides a number of sub-commands that do the actual work.
-Those sub-commands are described below.
+The ``pybabel`` script provides a number of sub-commands that do the actual
+work. Those sub-commands are described below.
 
 
 extract
@@ -37,8 +37,8 @@ extract
 The ``extract`` sub-command can be used to extract localizable messages from
 a collection of source files::
 
-    $ babel extract --help
-    usage: babel extract [options] dir1 <dir2> ...
+    $ pybabel extract --help
+    usage: pybabel extract [options] dir1 <dir2> ...
     
     extract messages from source files and generate a POT file
     
@@ -79,8 +79,8 @@ init
 The `init` sub-command creates a new translations catalog based on a PO
 template file::
 
-    $ babel init --help
-    usage: babel init [options] 
+    $ pybabel init --help
+    usage: pybabel init [options] 
     
     create new message catalogs from a template
     
