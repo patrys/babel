@@ -267,10 +267,7 @@ def get_timezone_location(dt_or_tzinfo=None, locale=LC_TIME):
     # Get the canonical time-zone code
     zone = get_global('zone_aliases').get(zone, zone)
 
-    metainfo = {}
     info = locale.time_zones.get(zone, {})
-    if 'use_metazone' in info:
-        metainfo = locale.meta_zones.get(info['use_metazone'], {})
 
     # Otherwise, if there is only one timezone for the country, return the
     # localized country name
@@ -286,12 +283,15 @@ def get_timezone_location(dt_or_tzinfo=None, locale=LC_TIME):
     fallback_format = locale.zone_formats['fallback']
     if 'city' in info:
         city_name = info['city']
-    elif 'city' in metainfo:
-        city_name = metainfo['city']
-    elif '/' in zone:
-        city_name = zone.split('/', 1)[1].replace('_', ' ')
     else:
-        city_name = zone.replace('_', ' ')
+        metazone = get_global('meta_zones').get(zone)
+        metazone_info = locale.meta_zones.get(metazone, {})
+        if 'city' in metazone_info:
+            city_name = metainfo['city']
+        elif '/' in zone:
+            city_name = zone.split('/', 1)[1].replace('_', ' ')
+        else:
+            city_name = zone.replace('_', ' ')
 
     return region_format % (fallback_format % {
         '0': city_name,
@@ -341,8 +341,8 @@ def get_timezone_name(dt_or_tzinfo=None, width='long', uncommon=False,
     The `uncommon` parameter can be set to `True` to enable the use of timezone
     representations that are not commonly used by the requested locale. For
     example, while in frensh the central europian timezone is usually
-    abbreviated as "HEC", in Canadian frensh, this abbreviation is not in common
-    use, so a generic name would be chosen by default:
+    abbreviated as "HEC", in Canadian French, this abbreviation is not in
+    common use, so a generic name would be chosen by default:
     
     >>> tz = timezone('Europe/Paris')
     >>> get_timezone_name(tz, 'short', locale='fr_CA')
@@ -386,7 +386,6 @@ def get_timezone_name(dt_or_tzinfo=None, width='long', uncommon=False,
     # Get the canonical time-zone code
     zone = get_global('zone_aliases').get(zone, zone)
 
-    metainfo = {}
     info = locale.time_zones.get(zone, {})
     # Try explicitly translated zone names first
     if width in info:
@@ -397,15 +396,16 @@ def get_timezone_name(dt_or_tzinfo=None, width='long', uncommon=False,
         if field in info[width]:
             return info[width][field]
 
-    if 'use_metazone' in info:
-        metainfo = locale.meta_zones.get(info['use_metazone'], {})
-        if width in metainfo and (uncommon or metainfo.get('common')):
+    metazone = get_global('meta_zones').get(zone)
+    if metazone:
+        metazone_info = locale.meta_zones.get(metazone, {})
+        if width in metazone_info and (uncommon or metazone_info.get('common')):
             if dt is None:
                 field = 'generic'
             else:
                 field = tzinfo.dst(dt) and 'daylight' or 'standard'
-            if field in metainfo[width]:
-                return metainfo[width][field]
+            if field in metazone_info[width]:
+                return metazone_info[width][field]
 
     # If we have a concrete datetime, we assume that the result can't be
     # independent of daylight savings time, so we return the GMT offset
@@ -521,9 +521,9 @@ def format_time(time=None, format='medium', tzinfo=None, locale=LC_TIME):
     
     >>> from pytz import timezone
     >>> t = time(15, 30)
-    >>> format_time(t, format='full', tzinfo=timezone('Europe/Paris'),
+    >>> format_time(t, format='full', tzinfo=timezone('Universal'),
     ...             locale='fr_FR')
-    u'17:30:00 HEC'
+    u'15:30:00 Monde (GMT)'
     >>> format_time(t, "hh 'o''clock' a, zzzz", tzinfo=timezone('US/Eastern'),
     ...             locale='en')
     u"11 o'clock AM, Eastern Daylight Time"
@@ -752,7 +752,7 @@ class DateTimeFormat(object):
         if num <= 2:
             return ('%%0%dd' % num) % self.value.month
         width = {3: 'abbreviated', 4: 'wide', 5: 'narrow'}[num]
-        context = {3: 'format', 4: 'format', 5: 'stand-alone'}[num]
+        context = {'M': 'format', 'L': 'stand-alone'}[char]
         return get_month_names(width, context, self.locale)[self.value.month]
 
     def format_week(self, char, num):

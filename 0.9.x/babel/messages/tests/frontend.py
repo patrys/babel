@@ -129,7 +129,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel %(version)s\n"
 
-#. This will be a translator coment,
+#. TRANSLATOR: This will be a translator coment,
 #. that will include several lines
 #: project/file1.py:8
 msgid "bar"
@@ -187,7 +187,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel %(version)s\n"
 
-#. This will be a translator coment,
+#. TRANSLATOR: This will be a translator coment,
 #. that will include several lines
 #: project/file1.py:8
 msgid "bar"
@@ -244,7 +244,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel %(version)s\n"
 
-#. This will be a translator coment,
+#. TRANSLATOR: This will be a translator coment,
 #. that will include several lines
 #: project/file1.py:8
 msgid "bar"
@@ -651,6 +651,22 @@ catalog %r is marked as fuzzy, skipping
         try:
             self.cli.run(sys.argv + ['compile',
                 '--locale', 'de_DE', '--use-fuzzy',
+                '-d', os.path.join(self.datadir, 'project', 'i18n')])
+            assert os.path.isfile(mo_file)
+            self.assertEqual("""\
+compiling catalog %r to %r
+""" % (po_file, mo_file), sys.stderr.getvalue())
+        finally:
+            if os.path.isfile(mo_file):
+                os.unlink(mo_file)
+
+    def test_compile_catalog_with_more_than_2_plural_forms(self):
+        po_file = os.path.join(self.datadir, 'project', 'i18n', 'ru_RU',
+                               'LC_MESSAGES', 'messages.po')
+        mo_file = po_file.replace('.po', '.mo')
+        try:
+            self.cli.run(sys.argv + ['compile',
+                '--locale', 'ru_RU', '--use-fuzzy',
                 '-d', os.path.join(self.datadir, 'project', 'i18n')])
             assert os.path.isfile(mo_file)
             self.assertEqual("""\

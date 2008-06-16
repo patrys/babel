@@ -107,9 +107,10 @@ class compile_catalog(Command):
 
         if not self.input_file:
             if self.locale:
-                po_files.append(os.path.join(self.directory, self.locale,
-                                             'LC_MESSAGES',
-                                             self.domain + '.po'))
+                po_files.append((self.locale,
+                                 os.path.join(self.directory, self.locale,
+                                              'LC_MESSAGES',
+                                              self.domain + '.po')))
                 mo_files.append(os.path.join(self.directory, self.locale,
                                              'LC_MESSAGES',
                                              self.domain + '.mo'))
@@ -118,12 +119,12 @@ class compile_catalog(Command):
                     po_file = os.path.join(self.directory, locale,
                                            'LC_MESSAGES', self.domain + '.po')
                     if os.path.exists(po_file):
-                        po_files.append(po_file)
+                        po_files.append((locale, po_file))
                         mo_files.append(os.path.join(self.directory, locale,
                                                      'LC_MESSAGES',
                                                      self.domain + '.mo'))
         else:
-            po_files.append(self.input_file)
+            po_files.append((self.locale, self.input_file))
             if self.output_file:
                 mo_files.append(self.output_file)
             else:
@@ -134,11 +135,11 @@ class compile_catalog(Command):
         if not po_files:
             raise DistutilsOptionError('no message catalogs found')
 
-        for idx, po_file in enumerate(po_files):
+        for idx, (locale, po_file) in enumerate(po_files):
             mo_file = mo_files[idx]
             infile = open(po_file, 'r')
             try:
-                catalog = read_po(infile)
+                catalog = read_po(infile, locale)
             finally:
                 infile.close()
 
@@ -222,12 +223,14 @@ class extract_messages(Command):
         ('add-comments=', 'c',
          'place comment block with TAG (or those preceding keyword lines) in '
          'output file. Seperate multiple TAGs with commas(,)'),
+        ('strip-comments', None,
+         'strip the comment TAGs from the comments.'),
         ('input-dirs=', None,
          'directories that should be scanned for messages'),
     ]
     boolean_options = [
         'no-default-keywords', 'no-location', 'omit-header', 'no-wrap',
-        'sort-output', 'sort-by-file'
+        'sort-output', 'sort-by-file', 'strip-comments'
     ]
 
     def initialize_options(self):
@@ -248,6 +251,7 @@ class extract_messages(Command):
         self.copyright_holder = None
         self.add_comments = None
         self._add_comments = []
+        self.strip_comments = False
 
     def finalize_options(self):
         if self.no_default_keywords and not self.keywords:
@@ -304,7 +308,9 @@ class extract_messages(Command):
                 extracted = extract_from_dir(dirname, method_map, options_map,
                                              keywords=self._keywords,
                                              comment_tags=self._add_comments,
-                                             callback=callback)
+                                             callback=callback,
+                                             strip_comment_tags=
+                                                self.strip_comments)
                 for filename, lineno, message, comments in extracted:
                     filepath = os.path.normpath(os.path.join(dirname, filename))
                     catalog.add(message, None, [(filepath, lineno)],
@@ -698,9 +704,10 @@ class CommandLineInterface(object):
                 parser.error('you must specify either the input file or the '
                              'base directory')
             if options.locale:
-                po_files.append(os.path.join(options.directory, options.locale,
-                                             'LC_MESSAGES',
-                                             options.domain + '.po'))
+                po_files.append((options.locale,
+                                 os.path.join(options.directory,
+                                              options.locale, 'LC_MESSAGES',
+                                              options.domain + '.po')))
                 mo_files.append(os.path.join(options.directory, options.locale,
                                              'LC_MESSAGES',
                                              options.domain + '.mo'))
@@ -709,12 +716,12 @@ class CommandLineInterface(object):
                     po_file = os.path.join(options.directory, locale,
                                            'LC_MESSAGES', options.domain + '.po')
                     if os.path.exists(po_file):
-                        po_files.append(po_file)
+                        po_files.append((locale, po_file))
                         mo_files.append(os.path.join(options.directory, locale,
                                                      'LC_MESSAGES',
                                                      options.domain + '.mo'))
         else:
-            po_files.append(options.input_file)
+            po_files.append((options.locale, options.input_file))
             if options.output_file:
                 mo_files.append(options.output_file)
             else:
@@ -727,11 +734,11 @@ class CommandLineInterface(object):
         if not po_files:
             parser.error('no message catalogs found')
 
-        for idx, po_file in enumerate(po_files):
+        for idx, (locale, po_file) in enumerate(po_files):
             mo_file = mo_files[idx]
             infile = open(po_file, 'r')
             try:
-                catalog = read_po(infile)
+                catalog = read_po(infile, locale)
             finally:
                 infile.close()
 
@@ -814,12 +821,15 @@ class CommandLineInterface(object):
                           help='place comment block with TAG (or those '
                                'preceding keyword lines) in output file. One '
                                'TAG per argument call')
+        parser.add_option('--strip-comment-tags', '-s',
+                          dest='strip_comment_tags', action='store_true',
+                          help='Strip the comment tags from the comments.')
 
         parser.set_defaults(charset='utf-8', keywords=[],
                             no_default_keywords=False, no_location=False,
                             omit_header = False, width=76, no_wrap=False,
                             sort_output=False, sort_by_file=False,
-                            comment_tags=[])
+                            comment_tags=[], strip_comment_tags=False)
         options, args = parser.parse_args(argv)
         if not args:
             parser.error('incorrect number of arguments')
@@ -881,7 +891,9 @@ class CommandLineInterface(object):
 
                 extracted = extract_from_dir(dirname, method_map, options_map,
                                              keywords, options.comment_tags,
-                                             callback=callback)
+                                             callback=callback,
+                                             strip_comment_tags=
+                                                options.strip_comment_tags)
                 for filename, lineno, message, comments in extracted:
                     filepath = os.path.normpath(os.path.join(dirname, filename))
                     catalog.add(message, None, [(filepath, lineno)],
