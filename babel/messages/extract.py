@@ -30,6 +30,7 @@ import sys
 from tokenize import generate_tokens, COMMENT, NAME, OP, STRING
 
 from babel.util import parse_encoding, pathmatch, relpath
+from textwrap import dedent
 
 __all__ = ['extract', 'extract_from_dir', 'extract_from_file']
 __docformat__ = 'restructuredtext en'
@@ -53,9 +54,22 @@ empty_msgid_warning = (
 '%s: warning: Empty msgid.  It is reserved by GNU gettext: gettext("") '
 'returns the header entry with meta information, not the empty string.')
 
+
+def _strip_comment_tags(comments, tags):
+    """Helper function for `extract` that strips comment tags from strings
+    in a list of comment lines.  This functions operates in-place.
+    """
+    def _strip(line):
+        for tag in tags:
+            if line.startswith(tag):
+                return line[len(tag):].strip()
+        return line
+    comments[:] = map(_strip, comments)
+
+
 def extract_from_dir(dirname=os.getcwd(), method_map=DEFAULT_MAPPING,
                      options_map=None, keywords=DEFAULT_KEYWORDS,
-                     comment_tags=(), callback=None):
+                     comment_tags=(), callback=None, strip_comment_tags=False):
     """Extract messages from any source files found in the given directory.
 
     This function generates tuples of the form:
@@ -118,6 +132,8 @@ def extract_from_dir(dirname=os.getcwd(), method_map=DEFAULT_MAPPING,
                      performed; the function is passed the filename, the name
                      of the extraction method and and the options dictionary as
                      positional arguments, in that order
+    :param strip_comment_tags: a flag that if set to `True` causes all comment
+                               tags to be removed from the collected comments.
     :return: an iterator over ``(filename, lineno, funcname, message)`` tuples
     :rtype: ``iterator``
     :see: `pathmatch`
@@ -147,15 +163,18 @@ def extract_from_dir(dirname=os.getcwd(), method_map=DEFAULT_MAPPING,
                     if callback:
                         callback(filename, method, options)
                     for lineno, message, comments in \
-                                  extract_from_file(method, filepath,
-                                                    keywords=keywords,
-                                                    comment_tags=comment_tags,
-                                                    options=options):
+                          extract_from_file(method, filepath,
+                                            keywords=keywords,
+                                            comment_tags=comment_tags,
+                                            options=options,
+                                            strip_comment_tags=
+                                                strip_comment_tags):
                         yield filename, lineno, message, comments
                     break
 
+
 def extract_from_file(method, filename, keywords=DEFAULT_KEYWORDS,
-                      comment_tags=(), options=None):
+                      comment_tags=(), options=None, strip_comment_tags=False):
     """Extract messages from a specific file.
 
     This function returns a list of tuples of the form:
@@ -170,18 +189,22 @@ def extract_from_file(method, filename, keywords=DEFAULT_KEYWORDS,
                      localizable strings
     :param comment_tags: a list of translator tags to search for and include
                          in the results
+    :param strip_comment_tags: a flag that if set to `True` causes all comment
+                               tags to be removed from the collected comments.
     :param options: a dictionary of additional options (optional)
     :return: the list of extracted messages
     :rtype: `list`
     """
     fileobj = open(filename, 'U')
     try:
-        return list(extract(method, fileobj, keywords, comment_tags, options))
+        return list(extract(method, fileobj, keywords, comment_tags, options,
+                            strip_comment_tags))
     finally:
         fileobj.close()
 
+
 def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
-            options=None):
+            options=None, strip_comment_tags=False):
     """Extract messages from the given file-like object using the specified
     extraction method.
 
@@ -205,8 +228,9 @@ def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
     :param method: a string specifying the extraction method (.e.g. "python");
                    if this is a simple name, the extraction function will be
                    looked up by entry point; if it is an explicit reference
-                   to a function (of the form ``package.module:funcname``), the
-                   corresponding function will be imported and used
+                   to a function (of the form ``package.module:funcname`` or
+                   ``package.module.funcname``), the corresponding function
+                   will be imported and used
     :param fileobj: the file-like object the messages should be extracted from
     :param keywords: a dictionary mapping keywords (i.e. names of functions
                      that should be recognized as translation functions) to
@@ -215,13 +239,20 @@ def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
     :param comment_tags: a list of translator tags to search for and include
                          in the results
     :param options: a dictionary of additional options (optional)
+    :param strip_comment_tags: a flag that if set to `True` causes all comment
+                               tags to be removed from the collected comments.
     :return: the list of extracted messages
     :rtype: `list`
     :raise ValueError: if the extraction method is not registered
     """
-    if ':' in method:
-        module, clsname = method.split(':', 1)
-        func = getattr(__import__(module, {}, {}, [clsname]), clsname)
+    func = None
+    if ':' in method or '.' in method:
+        if ':' not in method:
+            lastdot = method.rfind('.')
+            module, attrname = method[:lastdot], method[lastdot + 1:]
+        else:
+            module, attrname = method.split(':', 1)
+        func = getattr(__import__(module, {}, {}, [attrname]), attrname)
     else:
         try:
             from pkg_resources import working_set
@@ -279,13 +310,19 @@ def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
         messages = tuple(msgs)
         if len(messages) == 1:
             messages = messages[0]
+
+        if strip_comment_tags:
+            _strip_comment_tags(comments, comment_tags)
+
         yield lineno, messages, comments
+
 
 def extract_nothing(fileobj, keywords, comment_tags, options):
     """Pseudo extractor that does not actually extract anything, but simply
     returns an empty list.
     """
     return []
+
 
 def extract_python(fileobj, keywords, comment_tags, options):
     """Extract messages from Python source code.
@@ -306,6 +343,7 @@ def extract_python(fileobj, keywords, comment_tags, options):
     messages = []
     translator_comments = []
     in_def = in_translator_comments = False
+    comment_tag = None
 
     encoding = parse_encoding(fileobj) or options.get('encoding', 'iso-8859-1')
 
@@ -332,8 +370,6 @@ def extract_python(fileobj, keywords, comment_tags, options):
             if in_translator_comments and \
                     translator_comments[-1][0] == lineno - 1:
                 # We're already inside a translator comment, continue appending
-                # XXX: Should we check if the programmer keeps adding the
-                # comment_tag for every comment line??? probably not!
                 translator_comments.append((lineno, value))
                 continue
             # If execution reaches this point, let's see if comment line
@@ -341,8 +377,7 @@ def extract_python(fileobj, keywords, comment_tags, options):
             for comment_tag in comment_tags:
                 if value.startswith(comment_tag):
                     in_translator_comments = True
-                    comment = value[len(comment_tag):].strip()
-                    translator_comments.append((lineno, comment))
+                    translator_comments.append((lineno, value))
                     break
         elif funcname and call_stack == 0:
             if tok == OP and value == ')':
@@ -392,3 +427,110 @@ def extract_python(fileobj, keywords, comment_tags, options):
             funcname = None
         elif tok == NAME and value in keywords:
             funcname = value
+
+
+def extract_javascript(fileobj, keywords, comment_tags, options):
+    """Extract messages from JavaScript source code.
+
+    :param fileobj: the seekable, file-like object the messages should be
+                    extracted from
+    :param keywords: a list of keywords (i.e. function names) that should be
+                     recognized as translation functions
+    :param comment_tags: a list of translator tags to search for and include
+                         in the results
+    :param options: a dictionary of additional options (optional)
+    :return: an iterator over ``(lineno, funcname, message, comments)`` tuples
+    :rtype: ``iterator``
+    """
+    from babel.messages.jslexer import tokenize, unquote_string
+    funcname = message_lineno = None
+    messages = []
+    last_argument = None
+    translator_comments = []
+    encoding = options.get('encoding', 'utf-8')
+    last_token = None
+    call_stack = -1
+
+    for token in tokenize(fileobj.read().decode(encoding)):
+        if token.type == 'operator' and token.value == '(':
+            if funcname:
+                message_lineno = token.lineno
+                call_stack += 1
+
+        elif call_stack == -1 and token.type == 'linecomment':
+            value = token.value[2:].strip()
+            if translator_comments and \
+               translator_comments[-1][0] == token.lineno - 1:
+                translator_comments.append((token.lineno, value))
+                continue
+
+            for comment_tag in comment_tags:
+                if value.startswith(comment_tag):
+                    translator_comments.append((token.lineno, value.strip()))
+                    break
+
+        elif token.type == 'multilinecomment':
+            # only one multi-line comment may preceed a translation
+            translator_comments = []
+            value = token.value[2:-2].strip()
+            for comment_tag in comment_tags:
+                if value.startswith(comment_tag):
+                    lines = value.splitlines()
+                    if lines:
+                        lines[0] = lines[0].strip()
+                        lines[1:] = dedent('\n'.join(lines[1:])).splitlines()
+                        for offset, line in enumerate(lines):
+                            translator_comments.append((token.lineno + offset,
+                                                        line))
+                    break
+
+        elif funcname and call_stack == 0:
+            if token.type == 'operator' and token.value == ')':
+                if last_argument is not None:
+                    messages.append(last_argument)
+                if len(messages) > 1:
+                    messages = tuple(messages)
+                elif messages:
+                    messages = messages[0]
+                else:
+                    messages = None
+
+                # Comments don't apply unless they immediately preceed the
+                # message
+                if translator_comments and \
+                   translator_comments[-1][0] < message_lineno - 1:
+                    translator_comments = []
+
+                if messages is not None:
+                    yield (message_lineno, funcname, messages,
+                           [comment[1] for comment in translator_comments])
+
+                funcname = message_lineno = last_argument = None
+                translator_comments = []
+                messages = []
+                call_stack = -1
+
+            elif token.type == 'string':
+                last_argument = unquote_string(token.value)
+
+            elif token.type == 'operator' and token.value == ',':
+                if last_argument is not None:
+                    messages.append(last_argument)
+                    last_argument = None
+                else:
+                    messages.append(None)
+
+        elif call_stack > 0 and token.type == 'operator' \
+             and token.value == ')':
+            call_stack -= 1
+
+        elif funcname and call_stack == -1:
+            funcname = None
+
+        elif call_stack == -1 and token.type == 'name' and \
+             token.value in keywords and \
+             (last_token is None or last_token.type != 'name' or
+              last_token.value != 'function'):
+            funcname = token.value
+
+        last_token = token
