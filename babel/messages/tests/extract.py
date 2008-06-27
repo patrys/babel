@@ -62,6 +62,45 @@ msg = ngettext('pylon',  # TRANSLATORS: shouldn't be
         self.assertEqual([(1, 'ngettext', (u'pylon', u'pylons', None), [])],
                          messages)
 
+    def test_comments_with_calls_that_spawn_multiple_lines(self):
+        buf = StringIO("""\
+# NOTE: This Comment SHOULD Be Extracted
+add_notice(req, ngettext("Catalog deleted.",
+                         "Catalogs deleted.", len(selected)))
+
+# NOTE: This Comment SHOULD Be Extracted
+add_notice(req, _("Locale deleted."))
+
+
+# NOTE: This Comment SHOULD Be Extracted
+add_notice(req, ngettext("Foo deleted.", "Foos deleted.", len(selected)))
+
+# NOTE: This Comment SHOULD Be Extracted
+# NOTE: And This One Too
+add_notice(req, ngettext("Bar deleted.",
+                         "Bars deleted.", len(selected)))
+""")
+        messages = list(extract.extract_python(buf, ('ngettext','_'), ['NOTE:'],
+
+                                               {'strip_comment_tags':False}))
+        self.assertEqual((6, '_', 'Locale deleted.',
+                          [u'NOTE: This Comment SHOULD Be Extracted']),
+                         messages[1])
+        self.assertEqual((10, 'ngettext', (u'Foo deleted.', u'Foos deleted.',
+                                           None),
+                          [u'NOTE: This Comment SHOULD Be Extracted']),
+                         messages[2])
+        self.assertEqual((3, 'ngettext',
+                           (u'Catalog deleted.',
+                            u'Catalogs deleted.', None),
+                           [u'NOTE: This Comment SHOULD Be Extracted']),
+                         messages[0])
+        self.assertEqual((15, 'ngettext', (u'Bar deleted.', u'Bars deleted.',
+                                           None),
+                          [u'NOTE: This Comment SHOULD Be Extracted',
+                           u'NOTE: And This One Too']),
+                         messages[3])
+
     def test_declarations(self):
         buf = StringIO("""\
 class gettext(object):
@@ -175,7 +214,7 @@ msg = _(u'Foo Bar')
         buf = StringIO("""
 # This shouldn't be in the output
 # because it didn't start with a comment tag
-# do NOTE: this will no be a translation comment
+# do NOTE: this will not be a translation comment
 # NOTE: This one will be
 msg = _(u'Foo Bar')
 """)
@@ -248,6 +287,17 @@ hithere = _('Hi there!')
         messages = list(extract.extract_python(buf, ('_',), ['NOTE:'], {}))
         self.assertEqual(u'Hi there!', messages[0][2])
         self.assertEqual([], messages[0][3])
+
+    def test_comment_tag_with_leading_space(self):
+        buf = StringIO("""
+  #: A translation comment
+  #: with leading spaces
+msg = _(u'Foo Bar')
+""")
+        messages = list(extract.extract_python(buf, ('_',), [':'], {}))
+        self.assertEqual(u'Foo Bar', messages[0][2])
+        self.assertEqual([u': A translation comment', u': with leading spaces'],
+                         messages[0][3])
 
     def test_different_signatures(self):
         buf = StringIO("""

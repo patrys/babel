@@ -30,6 +30,7 @@ __all__ = ['distinct', 'pathmatch', 'relpath', 'wraptext', 'odict', 'UTC',
            'LOCALTZ']
 __docformat__ = 'restructuredtext en'
 
+
 def distinct(iterable):
     """Yield all items in an iterable collection that are distinct.
 

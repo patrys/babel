@@ -17,6 +17,7 @@ from cgi import parse_header
 from datetime import datetime
 from difflib import get_close_matches
 from email import message_from_string
+from copy import copy
 import re
 try:
     set
@@ -33,8 +34,17 @@ from babel.util import odict, distinct, LOCALTZ, UTC, FixedOffsetTimezone
 __all__ = ['Message', 'Catalog', 'TranslationError']
 __docformat__ = 'restructuredtext en'
 
-PYTHON_FORMAT = re.compile(r'\%(\([\w]+\))?([-#0\ +])?(\*|[\d]+)?'
-                           r'(\.(\*|[\d]+))?([hlL])?[diouxXeEfFgGcrs]')
+
+PYTHON_FORMAT = re.compile(r'''(?x)
+    \%
+        (?:\(([\w]*)\))?
+        (
+            [-#0\ +]?(?:\*|[\d]+)?
+            (?:\.(?:\*|[\d]+))?
+            [hlL]?
+        )
+        ([diouxXeEfFgGcrs%])
+''')
 
 
 class Message(object):
@@ -93,9 +103,29 @@ class Message(object):
         return cmp(self.id, obj.id)
 
     def clone(self):
-        return Message(self.id, self.string, self.locations, self.flags,
-                       self.auto_comments, self.user_comments,
-                       self.previous_id, self.lineno)
+        return Message(*map(copy, (self.id, self.string, self.locations,
+                                   self.flags, self.auto_comments,
+                                   self.user_comments, self.previous_id,
+                                   self.lineno)))
+
+    def check(self, catalog=None):
+        """Run various validation checks on the message.  Some validations
+        are only performed if the catalog is provided.  This method returns
+        a sequence of `TranslationError` objects.
+
+        :rtype: ``iterator``
+        :param catalog: A catalog instance that is passed to the checkers
+        :see: `Catalog.check` for a way to perform checks for all messages
+              in a catalog.
+        """
+        from babel.messages.checkers import checkers
+        errors = []
+        for checker in checkers:
+            try:
+                checker(catalog, self)
+            except TranslationError, e:
+                errors.append(e)
+        return errors
 
     def fuzzy(self):
         return 'fuzzy' in self.flags
@@ -568,28 +598,12 @@ class Catalog(object):
         ``(message, errors)`` tuple, where ``message`` is the `Message` object
         and ``errors`` is a sequence of `TranslationError` objects.
 
-        :note: this feature requires ``setuptools``/``pkg_resources`` to be
-               installed; if it is not, this method will simply return an empty
-               iterator
         :rtype: ``iterator``
         """
-        checkers = []
-        try:
-            from pkg_resources import working_set
-        except ImportError:
-            return
-        else:
-            for entry_point in working_set.iter_entry_points('babel.checkers'):
-                checkers.append(entry_point.load())
-            for message in self._messages.values():
-                errors = []
-                for checker in checkers:
-                    try:
-                        checker(self, message)
-                    except TranslationError, e:
-                        errors.append(e)
-                if errors:
-                    yield message, errors
+        for message in self._messages.values():
+            errors = message.check(catalog=self)
+            if errors:
+                yield message, errors
 
     def update(self, template, no_fuzzy_matching=False):
         """Update the catalog based on the given template catalog.

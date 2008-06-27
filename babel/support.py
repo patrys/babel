@@ -20,6 +20,11 @@ in applications.
 from datetime import date, datetime, time
 import gettext
 
+try:
+    set
+except NameError:
+    from sets import set
+
 from babel.core import Locale
 from babel.dates import format_date, format_datetime, format_time, LC_TIME
 from babel.numbers import format_number, format_decimal, format_currency, \
