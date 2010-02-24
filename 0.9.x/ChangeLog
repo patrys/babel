@@ -1,3 +1,11 @@
+Version 0.9.5
+http://svn.edgewall.org/repos/babel/tags/0.9.5/
+(? ? 2010, from branches/stable/0.9.x)
+
+ * Fixed the case where messages containing square brackets would break with
+   an unpack error.
+
+
 Version 0.9.4
 http://svn.edgewall.org/repos/babel/tags/0.9.4/
 (Aug 25 2008, from branches/stable/0.9.x)

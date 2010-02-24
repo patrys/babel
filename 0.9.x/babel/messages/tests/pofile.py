@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 Edgewall Software
+# Copyright (C) 2007-2010 Edgewall Software
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
@@ -166,6 +166,17 @@ msgstr[1] "Vohs"''') # last translation form is missing
         message = catalog['foo']
         self.assertEqual(3, len(message.string))
         self.assertEqual('', message.string[2])
+
+    def test_plural_with_square_brackets(self):
+        buf = StringIO(r'''msgid "foo"
+msgid_plural "foos"
+msgstr[0] "Voh [text]"
+msgstr[1] "Vohs [text]"''')
+        catalog = pofile.read_po(buf, locale='nb_NO')
+        self.assertEqual(1, len(catalog))
+        self.assertEqual(2, catalog.num_plurals)
+        message = catalog['foo']
+        self.assertEqual(2, len(message.string))
 
 
 class WritePoTestCase(unittest.TestCase):
