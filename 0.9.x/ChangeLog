@@ -1,6 +1,6 @@
 Version 0.9.5
 http://svn.edgewall.org/repos/babel/tags/0.9.5/
-(? ? 2010, from branches/stable/0.9.x)
+(Apr 6 2010, from branches/stable/0.9.x)
 
  * Fixed the case where messages containing square brackets would break with
    an unpack error.
