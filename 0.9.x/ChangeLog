@@ -18,6 +18,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Add a __ne__() method to the Local class.
  * Explicitly sort instead of using sorted() and don't assume ordering
    (Python 2.3 and Jython compatibility).
+ * Removed ValueError raising for string formatting message checkers if the
+   string does not contain any string formattings (ticket #150).
 
 
 Version 0.9.5
