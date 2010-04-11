@@ -20,6 +20,7 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
    (Python 2.3 and Jython compatibility).
  * Removed ValueError raising for string formatting message checkers if the
    string does not contain any string formattings (ticket #150).
+ * Fix Serbian plural forms (ticket #213).
 
 
 Version 0.9.5
