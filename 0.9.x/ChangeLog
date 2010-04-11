@@ -15,6 +15,7 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
    behaviour of always wrapping comments (ticket #145).
  * Fixed negative offset handling of Catalog._set_mime_headers (ticket #165).
  * Add --project and --version options for commandline (ticket #173).
+ * Add a __ne__() method to the Local class.
 
 
 Version 0.9.5
