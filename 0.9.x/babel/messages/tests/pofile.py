@@ -143,29 +143,39 @@ msgstr "Bahr"
         self.assertEqual(1, len(catalog))
         self.assertEqual(0, len(catalog.obsolete))
 
-    def test_singlular_plural_form(self):
+    def test_single_plural_form(self):
         buf = StringIO(r'''msgid "foo"
-msgid_plural "foo"
-msgstr[0] "Voh"
-msgstr[1] "Vohs"''') # This is a bad po, ja_JP only uses msgstr[0]
+msgid_plural "foos"
+msgstr[0] "Voh"''')
         catalog = pofile.read_po(buf, locale='ja_JP')
         self.assertEqual(1, len(catalog))
         self.assertEqual(1, catalog.num_plurals)
         message = catalog['foo']
         self.assertEqual(1, len(message.string))
-        
+
+    def test_singular_plural_form(self):
+        buf = StringIO(r'''msgid "foo"
+msgid_plural "foos"
+msgstr[0] "Voh"
+msgstr[1] "Vohs"''')
+        catalog = pofile.read_po(buf, locale='nl_NL')
+        self.assertEqual(1, len(catalog))
+        self.assertEqual(2, catalog.num_plurals)
+        message = catalog['foo']
+        self.assertEqual(2, len(message.string))
+
     def test_more_than_two_plural_forms(self):
         buf = StringIO(r'''msgid "foo"
-msgid_plural "foo"
+msgid_plural "foos"
 msgstr[0] "Voh"
-msgstr[1] "Vohs"''') # last translation form is missing
-#msgstr[2] "Vohss"''')
+msgstr[1] "Vohs"
+msgstr[2] "Vohss"''')
         catalog = pofile.read_po(buf, locale='lv_LV')
         self.assertEqual(1, len(catalog))
         self.assertEqual(3, catalog.num_plurals)
         message = catalog['foo']
         self.assertEqual(3, len(message.string))
-        self.assertEqual('', message.string[2])
+        self.assertEqual(u'Vohss', message.string[2])
 
     def test_plural_with_square_brackets(self):
         buf = StringIO(r'''msgid "foo"
