@@ -14,6 +14,7 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Make --no-wrap work by reworking --width's default and mimic xgettext's
    behaviour of always wrapping comments (ticket #145).
  * Fixed negative offset handling of Catalog._set_mime_headers (ticket #165).
+ * Add --project and --version options for commandline (ticket #173).
 
 
 Version 0.9.5
