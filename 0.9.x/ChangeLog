@@ -16,6 +16,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Fixed negative offset handling of Catalog._set_mime_headers (ticket #165).
  * Add --project and --version options for commandline (ticket #173).
  * Add a __ne__() method to the Local class.
+ * Explicitly sort instead of using sorted() and don't assume ordering
+   (Python 2.3 and Jython compatibility).
 
 
 Version 0.9.5
