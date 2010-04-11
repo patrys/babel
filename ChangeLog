@@ -4,6 +4,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
 
  * Backport r493-494: documentation typo fixes.
  * Make the CLDR import script work with Python 2.7.
+ * Fix various typos.
+ * Sort output of list-locales.
 
 
 Version 0.9.5
