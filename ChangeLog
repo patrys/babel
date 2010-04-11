@@ -10,6 +10,7 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
    POT-Creation-Date of the template used to update (ticket #148).
  * Use a more explicit error message if no option or argument (command) is
    passed to pybabel (ticket #81).
+ * Keep the PO-Revision-Date if it is not the default value (ticket #148).
 
 
 Version 0.9.5
