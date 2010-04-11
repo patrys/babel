@@ -6,6 +6,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Make the CLDR import script work with Python 2.7.
  * Fix various typos.
  * Sort output of list-locales.
+ * Make the POT-Creation-Date of the catalog being updated equal to
+   POT-Creation-Date of the template used to update (ticket #148).
 
 
 Version 0.9.5
