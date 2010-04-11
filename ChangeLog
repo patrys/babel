@@ -13,6 +13,7 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Keep the PO-Revision-Date if it is not the default value (ticket #148).
  * Make --no-wrap work by reworking --width's default and mimic xgettext's
    behaviour of always wrapping comments (ticket #145).
+ * Fixed negative offset handling of Catalog._set_mime_headers (ticket #165).
 
 
 Version 0.9.5
