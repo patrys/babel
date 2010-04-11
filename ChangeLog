@@ -11,6 +11,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Use a more explicit error message if no option or argument (command) is
    passed to pybabel (ticket #81).
  * Keep the PO-Revision-Date if it is not the default value (ticket #148).
+ * Make --no-wrap work by reworking --width's default and mimic xgettext's
+   behaviour of always wrapping comments (ticket #145).
 
 
 Version 0.9.5
