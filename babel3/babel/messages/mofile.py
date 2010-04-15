@@ -27,8 +27,8 @@ __all__ = ['read_mo', 'write_mo']
 __docformat__ = 'restructuredtext en'
 
 
-LE_MAGIC = 0x950412deL
-BE_MAGIC = 0xde120495L
+LE_MAGIC = 0x950412de
+BE_MAGIC = 0xde120495
 
 def read_mo(fileobj):
     """Read a binary MO file from the given file-like object and return a
@@ -66,7 +66,7 @@ def read_mo(fileobj):
 
     # Now put all messages from the .mo file buffer into the catalog
     # dictionary
-    for i in xrange(0, msgcount):
+    for i in range(0, msgcount):
         mlen, moff = unpack(ii, buf[origidx:origidx + 8])
         mend = moff + mlen
         tlen, toff = unpack(ii, buf[transidx:transidx + 8])
@@ -113,7 +113,7 @@ def read_mo(fileobj):
         origidx += 8
         transidx += 8
 
-    catalog.mime_headers = headers.items()
+    catalog.mime_headers = list(headers.items())
     return catalog
 
 def write_mo(fileobj, catalog, use_fuzzy=False):

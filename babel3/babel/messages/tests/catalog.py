@@ -86,35 +86,35 @@ class CatalogTestCase(unittest.TestCase):
 
     def test_update_message_changed_to_plural(self):
         cat = catalog.Catalog()
-        cat.add(u'foo', u'Voh')
+        cat.add('foo', 'Voh')
         tmpl = catalog.Catalog()
-        tmpl.add((u'foo', u'foos'))
+        tmpl.add(('foo', 'foos'))
         cat.update(tmpl)
-        self.assertEqual((u'Voh', ''), cat['foo'].string)
+        self.assertEqual(('Voh', ''), cat['foo'].string)
         assert cat['foo'].fuzzy
 
     def test_update_message_changed_to_simple(self):
         cat = catalog.Catalog()
-        cat.add((u'foo' u'foos'), (u'Voh', u'Vöhs'))
+        cat.add(('foo' 'foos'), ('Voh', 'Vöhs'))
         tmpl = catalog.Catalog()
-        tmpl.add(u'foo')
+        tmpl.add('foo')
         cat.update(tmpl)
-        self.assertEqual(u'Voh', cat['foo'].string)
+        self.assertEqual('Voh', cat['foo'].string)
         assert cat['foo'].fuzzy
 
     def test_update_message_updates_comments(self):
         cat = catalog.Catalog()
-        cat[u'foo'] = catalog.Message('foo', locations=[('main.py', 5)])
-        self.assertEqual(cat[u'foo'].auto_comments, [])
-        self.assertEqual(cat[u'foo'].user_comments, [])
+        cat['foo'] = catalog.Message('foo', locations=[('main.py', 5)])
+        self.assertEqual(cat['foo'].auto_comments, [])
+        self.assertEqual(cat['foo'].user_comments, [])
         # Update cat[u'foo'] with a new location and a comment
-        cat[u'foo'] = catalog.Message('foo', locations=[('main.py', 7)],
+        cat['foo'] = catalog.Message('foo', locations=[('main.py', 7)],
                                       user_comments=['Foo Bar comment 1'])
-        self.assertEqual(cat[u'foo'].user_comments, ['Foo Bar comment 1'])
+        self.assertEqual(cat['foo'].user_comments, ['Foo Bar comment 1'])
         # now add yet another location with another comment
-        cat[u'foo'] = catalog.Message('foo', locations=[('main.py', 9)],
+        cat['foo'] = catalog.Message('foo', locations=[('main.py', 9)],
                                       auto_comments=['Foo Bar comment 2'])
-        self.assertEqual(cat[u'foo'].auto_comments, ['Foo Bar comment 2'])
+        self.assertEqual(cat['foo'].auto_comments, ['Foo Bar comment 2'])
 
     def test_update_fuzzy_matching_with_case_change(self):
         cat = catalog.Catalog()

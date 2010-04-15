@@ -19,7 +19,7 @@ import os
 import re
 import textwrap
 import time
-from itertools import izip, imap
+
 try:
     # assigned so they're importable
     frozenset = frozenset
@@ -216,10 +216,10 @@ class odict(dict):
         return d
 
     def items(self):
-        return zip(self._keys, self.values())
+        return list(zip(self._keys, list(self.values())))
 
     def iteritems(self):
-        return izip(self._keys, self.itervalues())
+        return zip(self._keys, iter(self.values()))
 
     def keys(self):
         return self._keys[:]
@@ -242,14 +242,14 @@ class odict(dict):
             self._keys.append(key)
 
     def update(self, dict):
-        for (key, val) in dict.items():
+        for (key, val) in list(dict.items()):
             self[key] = val
 
     def values(self):
-        return map(self.get, self._keys)
+        return list(map(self.get, self._keys))
 
     def itervalues(self):
-        return imap(self.get, self._keys)
+        return map(self.get, self._keys)
 
 
 try:

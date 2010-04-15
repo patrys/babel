@@ -14,7 +14,7 @@
 from datetime import datetime
 import time
 import unittest
-from StringIO import StringIO
+from io import StringIO
 
 from babel import __version__ as VERSION
 from babel.core import Locale, UnknownLocaleError
@@ -35,7 +35,7 @@ class CheckersTestCase(unittest.TestCase):
             except UnknownLocaleError:
                 # Just an alias? Not what we're testing here, let's continue
                 continue
-            po_file = (ur"""\
+            po_file = (r"""\
 # %(english_name)s translations for TestProject.
 # Copyright (C) 2007 FooBar, Inc.
 # This file is distributed under the same license as the TestProject
@@ -102,7 +102,7 @@ msgstr[0] ""
             except UnknownLocaleError:
                 # Just an alias? Not what we're testing here, let's continue
                 continue
-            po_file = (ur"""\
+            po_file = (r"""\
 # %(english_name)s translations for TestProject.
 # Copyright (C) 2007 FooBar, Inc.
 # This file is distributed under the same license as the TestProject

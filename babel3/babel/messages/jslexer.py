@@ -112,7 +112,7 @@ def unquote_string(string):
                 escaped_value = escaped.group()
                 if len(escaped_value) == 4:
                     try:
-                        add(unichr(int(escaped_value, 16)))
+                        add(chr(int(escaped_value, 16)))
                     except ValueError:
                         pass
                     else:
@@ -132,7 +132,7 @@ def unquote_string(string):
     if pos < len(string):
         add(string[pos:])
 
-    return u''.join(result)
+    return ''.join(result)
 
 
 def tokenize(source):

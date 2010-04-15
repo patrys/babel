@@ -126,7 +126,7 @@ def merge(dict1, dict2):
     :param dict1: the dictionary to merge into
     :param dict2: the dictionary containing the data that should be merged
     """
-    for key, val2 in dict2.items():
+    for key, val2 in list(dict2.items()):
         if val2 is not None:
             val1 = dict1.get(key)
             if isinstance(val2, dict):

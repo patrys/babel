@@ -18,7 +18,7 @@ from distutils.log import _global_log
 import doctest
 import os
 import shutil
-from StringIO import StringIO
+from io import StringIO
 import sys
 import time
 import unittest
@@ -524,7 +524,7 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
         try:
             self.cli.run(sys.argv)
             self.fail('Expected SystemExit')
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(2, e.code)
             self.assertEqual("""\
 usage: pybabel command [options] [args]
@@ -536,7 +536,7 @@ pybabel: error: no valid command or option passed. try the -h/--help option for 
         try:
             self.cli.run(sys.argv + ['--help'])
             self.fail('Expected SystemExit')
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(0, e.code)
             self.assertEqual("""\
 usage: pybabel command [options] [args]
@@ -563,7 +563,7 @@ commands:
                 '--msgid-bugs-address', 'bugs.address@email.tld',
                 '-c', 'TRANSLATOR', '-c', 'TRANSLATORS:',
                 '-o', pot_file, os.path.join(self.datadir, 'project')])
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(0, e.code)
             assert os.path.isfile(pot_file)
             self.assertEqual(
@@ -620,7 +620,7 @@ msgstr[1] ""
                 '--mapping', os.path.join(self.datadir, 'mapping.cfg'),
                 '-c', 'TRANSLATOR', '-c', 'TRANSLATORS:',
                 '-o', pot_file, os.path.join(self.datadir, 'project')])
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(0, e.code)
             assert os.path.isfile(pot_file)
             self.assertEqual(
@@ -671,7 +671,7 @@ msgstr[1] ""
                 '-d', os.path.join(self.datadir, 'project', 'i18n'),
                 '-i', os.path.join(self.datadir, 'project', 'i18n',
                                    'messages.pot')])
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(0, e.code)
             assert os.path.isfile(po_file)
             self.assertEqual(
@@ -722,7 +722,7 @@ msgstr[1] ""
                 '-d', os.path.join(self.datadir, 'project', 'i18n'),
                 '-i', os.path.join(self.datadir, 'project', 'i18n',
                                    'messages.pot')])
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(0, e.code)
         assert os.path.isfile(po_file)
         self.assertEqual(
@@ -772,7 +772,7 @@ msgstr[0] ""
                 '-d', os.path.join(self.datadir, 'project', 'i18n'),
                 '-i', os.path.join(self.datadir, 'project', 'i18n',
                                    'messages.pot')])
-        except SystemExit, e:
+        except SystemExit as e:
             self.assertEqual(0, e.code)
         assert os.path.isfile(po_file)
         self.assertEqual(

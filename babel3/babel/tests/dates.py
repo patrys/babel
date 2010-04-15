@@ -41,7 +41,7 @@ class DateTimeFormatTestCase(unittest.TestCase):
     def test_abbreviated_month_alias(self):
         d = date(2006, 3, 8)
         fmt = dates.DateTimeFormat(d, locale='de_DE')
-        self.assertEqual(u'Mär', fmt['LLL'])
+        self.assertEqual('Mär', fmt['LLL'])
 
     def test_week_of_year_first(self):
         d = date(2006, 1, 8)
@@ -201,7 +201,7 @@ class DateTimeFormatTestCase(unittest.TestCase):
         tz = timezone('Europe/Paris')
         t = time(15, 30, tzinfo=tz)
         fmt = dates.DateTimeFormat(t, locale='fr_FR')
-        self.assertEqual(u'Heure de l\u2019Europe centrale', fmt['vvvv'])
+        self.assertEqual('Heure de l\u2019Europe centrale', fmt['vvvv'])
 
     def test_hour_formatting(self):
         l = 'en_US'
@@ -220,12 +220,12 @@ class DateTimeFormatTestCase(unittest.TestCase):
 class FormatDateTestCase(unittest.TestCase):
 
     def test_with_time_fields_in_pattern(self):
-        self.assertRaises(AttributeError, dates.format_date, date(2007, 04, 01),
+        self.assertRaises(AttributeError, dates.format_date, date(2007, 0o4, 0o1),
                           "yyyy-MM-dd HH:mm", locale='en_US')
 
     def test_with_time_fields_in_pattern_and_datetime_param(self):
         self.assertRaises(AttributeError, dates.format_date,
-                          datetime(2007, 04, 01, 15, 30),
+                          datetime(2007, 0o4, 0o1, 15, 30),
                           "yyyy-MM-dd HH:mm", locale='en_US')
 
 
@@ -238,12 +238,12 @@ class FormatTimeTestCase(unittest.TestCase):
         self.assertEqual('11:30:00 AM EDT', string)
 
     def test_with_date_fields_in_pattern(self):
-        self.assertRaises(AttributeError, dates.format_time, date(2007, 04, 01),
+        self.assertRaises(AttributeError, dates.format_time, date(2007, 0o4, 0o1),
                           "yyyy-MM-dd HH:mm", locale='en_US')
 
     def test_with_date_fields_in_pattern_and_datetime_param(self):
         self.assertRaises(AttributeError, dates.format_time,
-                          datetime(2007, 04, 01, 15, 30),
+                          datetime(2007, 0o4, 0o1, 15, 30),
                           "yyyy-MM-dd HH:mm", locale='en_US')
 
 

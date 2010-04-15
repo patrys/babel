@@ -60,7 +60,7 @@ class MergeResolveTestCase(unittest.TestCase):
         self.assertEqual({
             'x': {'a': 1, 'b': 12, 'c': 3, 'd': 14},
             'y': {'a': 1, 'b': 22, 'c': 3, 'd': 14, 'e': 25}
-        }, dict(d.items()))
+        }, dict(list(d.items())))
 
 
 def suite():

@@ -208,7 +208,7 @@ class Locale(object):
                                      requested locale
         :see: `parse_locale`
         """
-        if isinstance(identifier, basestring):
+        if isinstance(identifier, str):
             return cls(*parse_locale(identifier, sep=sep))
         return identifier
     parse = classmethod(parse)
@@ -223,8 +223,8 @@ class Locale(object):
         return '<Locale "%s">' % str(self)
 
     def __str__(self):
-        return '_'.join(filter(None, [self.language, self.script,
-                                      self.territory, self.variant]))
+        return '_'.join([_f for _f in [self.language, self.script,
+                                      self.territory, self.variant] if _f])
 
     def _data(self):
         if self.__data is None:
@@ -256,9 +256,9 @@ class Locale(object):
                 details.append(locale.territories.get(self.territory))
             if self.variant:
                 details.append(locale.variants.get(self.variant))
-            details = filter(None, details)
+            details = [_f for _f in details if _f]
             if details:
-                retval += ' (%s)' % u', '.join(details)
+                retval += ' (%s)' % ', '.join(details)
         return retval
 
     display_name = property(get_display_name, doc="""\
@@ -648,7 +648,7 @@ def default_locale(category=None, aliases=LOCALE_ALIASES):
     :rtype: `str`
     """
     varnames = (category, 'LANGUAGE', 'LC_ALL', 'LC_CTYPE', 'LANG')
-    for name in filter(None, varnames):
+    for name in [_f for _f in varnames if _f]:
         locale = os.getenv(name)
         if locale:
             if name == 'LANGUAGE' and ':' in locale:
@@ -659,7 +659,7 @@ def default_locale(category=None, aliases=LOCALE_ALIASES):
                 locale = 'en_US_POSIX'
             elif aliases and locale in aliases:
                 locale = aliases[locale]
-            return '_'.join(filter(None, parse_locale(locale)))
+            return '_'.join([_f for _f in parse_locale(locale) if _f])
 
 def negotiate_locale(preferred, available, sep='_', aliases=LOCALE_ALIASES):
     """Find the best match between available and requested locale strings.

@@ -202,7 +202,7 @@ class LazyProxy(object):
     def __contains__(self, key):
         return key in self.value
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.value)
 
     def __dir__(self):
@@ -218,7 +218,7 @@ class LazyProxy(object):
         return str(self.value)
 
     def __unicode__(self):
-        return unicode(self.value)
+        return str(self.value)
 
     def __add__(self, other):
         return self.value + other
@@ -290,7 +290,7 @@ class Translations(gettext.GNUTranslations, object):
                         from
         """
         gettext.GNUTranslations.__init__(self, fp=fileobj)
-        self.files = filter(None, [getattr(fileobj, 'name', None)])
+        self.files = [_f for _f in [getattr(fileobj, 'name', None)] if _f]
         self.domain = domain
         self._domains = {}
 
@@ -510,7 +510,7 @@ class Translations(gettext.GNUTranslations, object):
         if tmsg is missing:
             if self._fallback:
                 return self._fallback.upgettext(context, message)
-            return unicode(message)
+            return str(message)
         return tmsg
 
     def unpgettext(self, context, singular, plural, num):
@@ -531,9 +531,9 @@ class Translations(gettext.GNUTranslations, object):
             if self._fallback:
                 return self._fallback.unpgettext(context, singular, plural, num)
             if num == 1:
-                tmsg = unicode(singular)
+                tmsg = str(singular)
             else:
-                tmsg = unicode(plural)
+                tmsg = str(plural)
         return tmsg
 
     def dpgettext(self, domain, context, message):

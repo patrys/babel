@@ -13,7 +13,7 @@
 
 from datetime import datetime
 import doctest
-from StringIO import StringIO
+from io import StringIO
 import unittest
 
 from babel.messages.catalog import Catalog, Message
@@ -100,15 +100,15 @@ msgstr ""
 ''')
         catalog = pofile.read_po(buf)
         self.assertEqual(1, len(list(catalog)))
-        self.assertEqual(u'3.15', catalog.version)
-        self.assertEqual(u'Fliegender Zirkus <fliegender@zirkus.de>',
+        self.assertEqual('3.15', catalog.version)
+        self.assertEqual('Fliegender Zirkus <fliegender@zirkus.de>',
                          catalog.msgid_bugs_address)
         self.assertEqual(datetime(2007, 9, 27, 11, 19,
                                   tzinfo=FixedOffsetTimezone(7 * 60)),
                          catalog.creation_date)
-        self.assertEqual(u'John <cleese@bavaria.de>', catalog.last_translator)
-        self.assertEqual(u'German Lang <de@babel.org>', catalog.language_team)
-        self.assertEqual(u'iso-8859-2', catalog.charset)
+        self.assertEqual('John <cleese@bavaria.de>', catalog.last_translator)
+        self.assertEqual('German Lang <de@babel.org>', catalog.language_team)
+        self.assertEqual('iso-8859-2', catalog.charset)
         self.assertEqual(True, list(catalog)[0].fuzzy)
 
     def test_obsolete_message(self):
@@ -124,9 +124,9 @@ msgstr "Bahr"
         catalog = pofile.read_po(buf)
         self.assertEqual(1, len(catalog))
         self.assertEqual(1, len(catalog.obsolete))
-        message = catalog.obsolete[u'foo']
-        self.assertEqual(u'foo', message.id)
-        self.assertEqual(u'Voh', message.string)
+        message = catalog.obsolete['foo']
+        self.assertEqual('foo', message.id)
+        self.assertEqual('Voh', message.string)
         self.assertEqual(['This is an obsolete message'], message.user_comments)
 
     def test_obsolete_message_ignored(self):
@@ -222,7 +222,7 @@ msgstr[2] "Vohss"''')
         self.assertEqual(3, catalog.num_plurals)
         message = catalog['foo']
         self.assertEqual(3, len(message.string))
-        self.assertEqual(u'Vohss', message.string[2])
+        self.assertEqual('Vohss', message.string[2])
 
     def test_plural_with_square_brackets(self):
         buf = StringIO(r'''msgid "foo"
@@ -240,8 +240,8 @@ class WritePoTestCase(unittest.TestCase):
 
     def test_join_locations(self):
         catalog = Catalog()
-        catalog.add(u'foo', locations=[('main.py', 1)])
-        catalog.add(u'foo', locations=[('utils.py', 3)])
+        catalog.add('foo', locations=[('main.py', 1)])
+        catalog.add('foo', locations=[('utils.py', 3)])
         buf = StringIO()
         pofile.write_po(buf, catalog, omit_header=True)
         self.assertEqual('''#: main.py:1 utils.py:3
@@ -250,8 +250,8 @@ msgstr ""''', buf.getvalue().strip())
 
     def test_duplicate_comments(self):
         catalog = Catalog()
-        catalog.add(u'foo', auto_comments=['A comment'])
-        catalog.add(u'foo', auto_comments=['A comment'])
+        catalog.add('foo', auto_comments=['A comment'])
+        catalog.add('foo', auto_comments=['A comment'])
         buf = StringIO()
         pofile.write_po(buf, catalog, omit_header=True)
         self.assertEqual('''#. A comment
@@ -314,10 +314,10 @@ msgstr ""''', buf.getvalue().strip())
 
     def test_wrap_locations_with_hyphens(self):
         catalog = Catalog()
-        catalog.add(u'foo', locations=[
+        catalog.add('foo', locations=[
             ('doupy/templates/base/navmenu.inc.html.py', 60)
         ])
-        catalog.add(u'foo', locations=[
+        catalog.add('foo', locations=[
             ('doupy/templates/job-offers/helpers.html', 22)
         ])
         buf = StringIO()
@@ -360,9 +360,9 @@ msgstr ""
 
     def test_pot_with_translator_comments(self):
         catalog = Catalog()
-        catalog.add(u'foo', locations=[('main.py', 1)],
+        catalog.add('foo', locations=[('main.py', 1)],
                     auto_comments=['Comment About `foo`'])
-        catalog.add(u'bar', locations=[('utils.py', 3)],
+        catalog.add('bar', locations=[('utils.py', 3)],
                     user_comments=['Comment About `bar` with',
                                    'multiple lines.'])
         buf = StringIO()
@@ -380,8 +380,8 @@ msgstr ""''', buf.getvalue().strip())
 
     def test_po_with_obsolete_message(self):
         catalog = Catalog()
-        catalog.add(u'foo', u'Voh', locations=[('main.py', 1)])
-        catalog.obsolete['bar'] = Message(u'bar', u'Bahr',
+        catalog.add('foo', 'Voh', locations=[('main.py', 1)])
+        catalog.obsolete['bar'] = Message('bar', 'Bahr',
                                           locations=[('utils.py', 3)],
                                           user_comments=['User comment'])
         buf = StringIO()
@@ -396,7 +396,7 @@ msgstr "Voh"
 
     def test_po_with_multiline_obsolete_message(self):
         catalog = Catalog()
-        catalog.add(u'foo', u'Voh', locations=[('main.py', 1)])
+        catalog.add('foo', 'Voh', locations=[('main.py', 1)])
         msgid = r"""Here's a message that covers
 multiple lines, and should still be handled
 correctly.
@@ -424,8 +424,8 @@ msgstr "Voh"
 
     def test_po_with_obsolete_message_ignored(self):
         catalog = Catalog()
-        catalog.add(u'foo', u'Voh', locations=[('main.py', 1)])
-        catalog.obsolete['bar'] = Message(u'bar', u'Bahr',
+        catalog.add('foo', 'Voh', locations=[('main.py', 1)])
+        catalog.obsolete['bar'] = Message('bar', 'Bahr',
                                           locations=[('utils.py', 3)],
                                           user_comments=['User comment'])
         buf = StringIO()
@@ -436,8 +436,8 @@ msgstr "Voh"''', buf.getvalue().strip())
 
     def test_po_with_previous_msgid(self):
         catalog = Catalog()
-        catalog.add(u'foo', u'Voh', locations=[('main.py', 1)],
-                    previous_id=u'fo')
+        catalog.add('foo', 'Voh', locations=[('main.py', 1)],
+                    previous_id='fo')
         buf = StringIO()
         pofile.write_po(buf, catalog, omit_header=True, include_previous=True)
         self.assertEqual('''#: main.py:1
@@ -447,8 +447,8 @@ msgstr "Voh"''', buf.getvalue().strip())
 
     def test_po_with_previous_msgid_plural(self):
         catalog = Catalog()
-        catalog.add((u'foo', u'foos'), (u'Voh', u'Voeh'),
-                    locations=[('main.py', 1)], previous_id=(u'fo', u'fos'))
+        catalog.add(('foo', 'foos'), ('Voh', 'Voeh'),
+                    locations=[('main.py', 1)], previous_id=('fo', 'fos'))
         buf = StringIO()
         pofile.write_po(buf, catalog, omit_header=True, include_previous=True)
         self.assertEqual('''#: main.py:1
@@ -461,10 +461,10 @@ msgstr[1] "Voeh"''', buf.getvalue().strip())
 
     def test_sorted_po(self):
         catalog = Catalog()
-        catalog.add(u'bar', locations=[('utils.py', 3)],
+        catalog.add('bar', locations=[('utils.py', 3)],
                     user_comments=['Comment About `bar` with',
                                    'multiple lines.'])
-        catalog.add((u'foo', u'foos'), (u'Voh', u'Voeh'),
+        catalog.add(('foo', 'foos'), ('Voh', 'Voeh'),
                     locations=[('main.py', 1)])
         buf = StringIO()
         pofile.write_po(buf, catalog, sort_output=True)

@@ -198,15 +198,15 @@ def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False):
             context.append(line[7:].lstrip())
         elif line.startswith('"'):
             if in_msgid[0]:
-                messages[-1] += u'\n' + line.rstrip()
+                messages[-1] += '\n' + line.rstrip()
             elif in_msgstr[0]:
-                translations[-1][1] += u'\n' + line.rstrip()
+                translations[-1][1] += '\n' + line.rstrip()
             elif in_msgctxt[0]:
                 context.append(line.rstrip())
 
     for lineno, line in enumerate(fileobj.readlines()):
         line = line.strip()
-        if not isinstance(line, unicode):
+        if not isinstance(line, str):
             line = line.decode(catalog.charset)
         if line.startswith('#'):
             in_msgid[0] = in_msgstr[0] = False
@@ -244,8 +244,8 @@ def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False):
     # No actual messages found, but there was some info in comments, from which
     # we'll construct an empty header message
     elif not counter[0] and (flags or user_comments or auto_comments):
-        messages.append(u'')
-        translations.append([0, u''])
+        messages.append('')
+        translations.append([0, ''])
         _add_message()
 
     return catalog
@@ -322,7 +322,7 @@ def normalize(string, prefix='', width=76):
                                 # separate line
                                 buf.append(chunks.pop())
                             break
-                    lines.append(u''.join(buf))
+                    lines.append(''.join(buf))
             else:
                 lines.append(line)
     else:
@@ -335,7 +335,7 @@ def normalize(string, prefix='', width=76):
     if lines and not lines[-1]:
         del lines[-1]
         lines[-1] += '\n'
-    return u'""\n' + u'\n'.join([(prefix + escape(l)) for l in lines])
+    return '""\n' + '\n'.join([(prefix + escape(l)) for l in lines])
 
 def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
              sort_output=False, sort_by_file=False, ignore_obsolete=False,
@@ -385,7 +385,7 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
             .encode(catalog.charset, 'backslashreplace')
 
     def _write(text):
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             text = text.encode(catalog.charset)
         fileobj.write(text)
 
@@ -442,7 +442,7 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
                 for line in comment_header.splitlines():
                     lines += wraptext(line, width=width,
                                       subsequent_indent='# ')
-                comment_header = u'\n'.join(lines) + u'\n'
+                comment_header = '\n'.join(lines) + '\n'
             _write(comment_header)
 
         for comment in message.user_comments:
@@ -451,7 +451,7 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
             _write_comment(comment, prefix='.')
 
         if not no_location:
-            locs = u' '.join([u'%s:%d' % (filename.replace(os.sep, '/'), lineno)
+            locs = ' '.join(['%s:%d' % (filename.replace(os.sep, '/'), lineno)
                               for filename, lineno in message.locations])
             _write_comment(locs, prefix=':')
         if message.flags:
@@ -469,7 +469,7 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
         _write('\n')
 
     if not ignore_obsolete:
-        for message in catalog.obsolete.values():
+        for message in list(catalog.obsolete.values()):
             for comment in message.user_comments:
                 _write_comment(comment)
             _write_message(message, prefix='#~ ')

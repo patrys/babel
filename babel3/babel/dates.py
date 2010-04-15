@@ -21,7 +21,7 @@ following environment variables, in that order:
  * ``LANG``
 """
 
-from __future__ import division
+
 from datetime import date, datetime, time, timedelta, tzinfo
 import re
 
@@ -202,7 +202,7 @@ def get_timezone_gmt(datetime=None, width='long', locale=LC_TIME):
     """
     if datetime is None:
         datetime = datetime_.utcnow()
-    elif isinstance(datetime, (int, long)):
+    elif isinstance(datetime, int):
         datetime = datetime_.utcfromtimestamp(datetime).time()
     if datetime.tzinfo is None:
         datetime = datetime.replace(tzinfo=UTC)
@@ -212,7 +212,7 @@ def get_timezone_gmt(datetime=None, width='long', locale=LC_TIME):
     seconds = offset.days * 24 * 60 * 60 + offset.seconds
     hours, seconds = divmod(seconds, 3600)
     if width == 'short':
-        pattern = u'%+03d%02d'
+        pattern = '%+03d%02d'
     else:
         pattern = locale.zone_formats['gmt'] % '%+03d:%02d'
     return pattern % (hours, seconds // 60)
@@ -246,7 +246,7 @@ def get_timezone_location(dt_or_tzinfo=None, locale=LC_TIME):
     :rtype: `unicode`
     :since: version 0.9
     """
-    if dt_or_tzinfo is None or isinstance(dt_or_tzinfo, (int, long)):
+    if dt_or_tzinfo is None or isinstance(dt_or_tzinfo, int):
         dt = None
         tzinfo = UTC
     elif isinstance(dt_or_tzinfo, (datetime, time)):
@@ -365,7 +365,7 @@ def get_timezone_name(dt_or_tzinfo=None, width='long', uncommon=False,
     :see:  `LDML Appendix J: Time Zone Display Names
             <http://www.unicode.org/reports/tr35/#Time_Zone_Fallback>`_
     """
-    if dt_or_tzinfo is None or isinstance(dt_or_tzinfo, (int, long)):
+    if dt_or_tzinfo is None or isinstance(dt_or_tzinfo, int):
         dt = None
         tzinfo = UTC
     elif isinstance(dt_or_tzinfo, (datetime, time)):
@@ -488,7 +488,7 @@ def format_datetime(datetime=None, format='medium', tzinfo=None,
     """
     if datetime is None:
         datetime = datetime_.utcnow()
-    elif isinstance(datetime, (int, long)):
+    elif isinstance(datetime, int):
         datetime = datetime_.utcfromtimestamp(datetime)
     elif isinstance(datetime, time):
         datetime = datetime_.combine(date.today(), datetime)
@@ -572,7 +572,7 @@ def format_time(time=None, format='medium', tzinfo=None, locale=LC_TIME):
     """
     if time is None:
         time = datetime.utcnow()
-    elif isinstance(time, (int, long)):
+    elif isinstance(time, int):
         time = datetime.utcfromtimestamp(time)
     if time.tzinfo is None:
         time = time.replace(tzinfo=UTC)
@@ -650,7 +650,7 @@ def format_timedelta(delta, granularity='second', threshold=.85, locale=LC_TIME)
             pattern = locale._data['unit_patterns'][unit][plural_form]
             return pattern.replace('{0}', str(value))
 
-    return u''
+    return ''
 
 def parse_date(string, locale=LC_TIME):
     """Parse a date from a string.
@@ -1052,4 +1052,4 @@ def parse_pattern(pattern):
     elif charbuf:
         append_chars()
 
-    return DateTimePattern(pattern, u''.join(result).replace('\0', "'"))
+    return DateTimePattern(pattern, ''.join(result).replace('\0', "'"))
