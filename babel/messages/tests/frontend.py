@@ -525,12 +525,19 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             self.cli.run(sys.argv)
             self.fail('Expected SystemExit')
         except SystemExit, e:
-            self.assertEqual(2, e.code)
+            stderr = sys.stderr.getvalue()
+            if isinstance(e.code, int):
+                self.assertEqual(2, e.code)
+            else:
+                # OptionParser in Python 2.3 does not set the exit code.
+                # Instead the 'code' contains the custom error message from the 
+                # frontend
+                stderr = stderr + e.code + '\n'
             self.assertEqual("""\
 usage: pybabel command [options] [args]
 
 pybabel: error: no valid command or option passed. try the -h/--help option for more information.
-""", sys.stderr.getvalue().lower())
+""", stderr.lower())
 
     def test_help(self):
         try:

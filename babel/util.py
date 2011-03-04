@@ -269,6 +269,28 @@ except AttributeError:
         rel_list = [os.path.pardir] * (len(start_list) - i) + path_list[i:]
         return os.path.join(*rel_list)
 
+try:
+    from operator import attrgetter, itemgetter
+except ImportError:
+    def itemgetter(name):
+        def _getitem(obj):
+            return obj[name]
+        return _getitem
+
+try:
+    ''.rsplit
+    def rsplit(a_string, sep=None, maxsplit=None):
+        return a_string.rsplit(sep, maxsplit)
+except AttributeError:
+    def rsplit(a_string, sep=None, maxsplit=None):
+        parts = a_string.split(sep)
+        if maxsplit is None or len(parts) <= maxsplit:
+            return parts
+        maxsplit_index = len(parts) - maxsplit
+        non_splitted_part = sep.join(parts[:maxsplit_index])
+        splitted = parts[maxsplit_index:]
+        return [non_splitted_part] + splitted
+
 ZERO = timedelta(0)
 
 

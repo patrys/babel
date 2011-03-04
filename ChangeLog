@@ -5,7 +5,7 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Backport r493-494: documentation typo fixes.
  * Make the CLDR import script work with Python 2.7.
  * Fix various typos.
- * Fixed Python 2.3 compatibility (ticket #146).
+ * Fixed Python 2.3 compatibility (ticket #146, #233).
  * Sort output of list-locales.
  * Make the POT-Creation-Date of the catalog being updated equal to
    POT-Creation-Date of the template used to update (ticket #148).

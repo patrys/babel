@@ -32,6 +32,7 @@ except ImportError:
     have_decimal = False
 
 from babel.core import default_locale, Locale
+from babel.util import rsplit
 
 __all__ = ['format_number', 'format_decimal', 'format_currency',
            'format_percent', 'format_scientific', 'parse_number',
@@ -391,7 +392,7 @@ def parse_pattern(pattern):
             raise ValueError('Significant digit patterns can not contain '
                              '"@" or "0"')
     if '.' in number:
-        integer, fraction = number.rsplit('.', 1)
+        integer, fraction = rsplit(number, '.', 1)
     else:
         integer = number
         fraction = ''
