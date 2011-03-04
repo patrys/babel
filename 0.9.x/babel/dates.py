@@ -578,7 +578,7 @@ def format_time(time=None, format='medium', tzinfo=None, locale=LC_TIME):
     if isinstance(time, datetime):
         if tzinfo is not None:
             time = time.astimezone(tzinfo)
-            if hasattr(tzinfo, 'localize'): # pytz
+            if hasattr(tzinfo, 'normalize'): # pytz
                 time = tzinfo.normalize(time)
         time = time.timetz()
     elif tzinfo is not None:

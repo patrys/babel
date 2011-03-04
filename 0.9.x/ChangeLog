@@ -25,6 +25,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
  * Small speed improvement in format_date() (ticket #216).
  * Fix number formatting for locales where CLDR specifies alt or draft 
    items (ticket #217)
+ * Fix bad check in format_time (ticket #257, reported with patch and tests by 
+   jomae)
 
 
 Version 0.9.5
