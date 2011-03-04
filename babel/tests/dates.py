@@ -13,11 +13,13 @@
 
 from datetime import date, datetime, time
 import doctest
+import new
 import unittest
 
 from pytz import timezone
 
 from babel import dates
+from babel.util import FixedOffsetTimezone
 
 
 class DateTimeFormatTestCase(unittest.TestCase):
@@ -247,12 +249,31 @@ class FormatTimeTestCase(unittest.TestCase):
                           "yyyy-MM-dd HH:mm", locale='en_US')
 
 
+class TimeZoneAdjustTestCase(unittest.TestCase):
+    def _utc(self):
+        UTC = FixedOffsetTimezone(0, 'UTC')
+        def fake_localize(self, dt, is_dst=False):
+            raise NotImplementedError()
+        UTC.localize = new.instancemethod(fake_localize, UTC, UTC.__class__)
+        # This is important to trigger the actual bug (#257)
+        self.assertEqual(False, hasattr(UTC, 'normalize'))
+        return UTC
+
+    def test_can_format_time_with_non_pytz_timezone(self):
+        # regression test for #257
+        utc = self._utc()
+        t = datetime(2007, 4, 1, 15, 30, tzinfo=utc)
+        formatted_time = dates.format_time(t, 'long', tzinfo=utc, locale='en')
+        self.assertEqual('3:30:00 PM +0000', formatted_time)
+
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(doctest.DocTestSuite(dates))
     suite.addTest(unittest.makeSuite(DateTimeFormatTestCase))
     suite.addTest(unittest.makeSuite(FormatDateTestCase))
     suite.addTest(unittest.makeSuite(FormatTimeTestCase))
+    suite.addTest(unittest.makeSuite(TimeZoneAdjustTestCase))
     return suite
 
 if __name__ == '__main__':
