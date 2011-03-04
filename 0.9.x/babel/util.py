@@ -18,7 +18,7 @@ from datetime import timedelta, tzinfo
 import os
 import re
 try:
-    set
+    set = set
 except NameError:
     from sets import Set as set
 import textwrap
