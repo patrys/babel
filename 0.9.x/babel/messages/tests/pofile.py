@@ -15,6 +15,7 @@ from datetime import datetime
 import doctest
 from StringIO import StringIO
 import unittest
+import sys
 
 from babel.messages.catalog import Catalog, Message
 from babel.messages import pofile
@@ -451,7 +452,9 @@ msgstr ""''')
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(doctest.DocTestSuite(pofile))
+    is_py23 = sys.version_info[0:2] == (2, 3)
+    if not is_py23:
+        suite.addTest(doctest.DocTestSuite(pofile))
     suite.addTest(unittest.makeSuite(ReadPoTestCase))
     suite.addTest(unittest.makeSuite(WritePoTestCase))
     return suite
