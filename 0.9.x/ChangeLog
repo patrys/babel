@@ -23,6 +23,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
    string does not contain any string formattings (ticket #150).
  * Fix Serbian plural forms (ticket #213).
  * Small speed improvement in format_date() (ticket #216).
+ * Fix number formatting for locales where CLDR specifies alt or draft 
+   items (ticket #217)
 
 
 Version 0.9.5
