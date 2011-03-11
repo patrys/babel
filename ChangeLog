@@ -27,6 +27,8 @@ http://svn.edgewall.org/repos/babel/tags/0.9.6/
    items (ticket #217)
  * Fix bad check in format_time (ticket #257, reported with patch and tests by 
    jomae)
+ * Fix so frontend.CommandLineInterface.run does not accumulate logging 
+   handlers (#227, reported with initial patch by dfraser)
  * Fix exception if environment contains an invalid locale setting (#200)
 
 
