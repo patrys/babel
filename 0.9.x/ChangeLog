@@ -1,3 +1,11 @@
+Version 0.9.7
+http://svn.edgewall.org/repos/babel/tags/0.9.7/
+(??? ?? 20??, from branches/stable/0.9.x)
+ * Only use bankers round algorithm as a tie breaker if there are two nearest
+   numbers, round as usual if there is only one nearest number (#267, patch by 
+   Martin)
+
+
 Version 0.9.6
 http://svn.edgewall.org/repos/babel/tags/0.9.6/
 (Mar 17 2011, from branches/stable/0.9.x)
