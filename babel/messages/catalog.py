@@ -46,7 +46,7 @@ PYTHON_FORMAT = re.compile(r'''(?x)
 class Message(object):
     """Representation of a single message in a catalog."""
 
-    def __init__(self, id, string=u'', locations=(), flags=(), auto_comments=(),
+    def __init__(self, id, string='', locations=(), flags=(), auto_comments=(),
                  user_comments=(), previous_id=(), lineno=None, context=None):
         """Create the message object.
 
@@ -66,7 +66,7 @@ class Message(object):
         """
         self.id = id #: The message ID
         if not string and self.pluralizable:
-            string = (u'', u'')
+            string = ('', '')
         self.string = string #: The message translation
         self.locations = list(distinct(locations))
         self.flags = set(flags)
@@ -76,7 +76,7 @@ class Message(object):
             self.flags.discard('python-format')
         self.auto_comments = list(distinct(auto_comments))
         self.user_comments = list(distinct(user_comments))
-        if isinstance(previous_id, basestring):
+        if isinstance(previous_id, str):
             self.previous_id = [previous_id]
         else:
             self.previous_id = list(previous_id)
@@ -87,45 +87,48 @@ class Message(object):
         return '<%s %r (flags: %r)>' % (type(self).__name__, self.id,
                                         list(self.flags))
 
-    def __cmp__(self, obj):
+    def _compare(self, obj):
         """Compare Messages, taking into account plural ids"""
-        def values_to_compare():
-            if isinstance(obj, Message):
-                plural = self.pluralizable
-                obj_plural = obj.pluralizable
-                if plural and obj_plural:
-                    return self.id[0], obj.id[0]
-                elif plural:
-                    return self.id[0], obj.id
-                elif obj_plural:
-                    return self.id, obj.id[0]
-            return self.id, obj.id
-        this, other = values_to_compare()
-        return cmp(this, other)
+        if isinstance(obj, Message):
+            plural = self.pluralizable
+            obj_plural = obj.pluralizable
+            if plural and obj_plural:
+                return self.id[0], obj.id[0]
+            elif plural:
+                return self.id[0], obj.id
+            elif obj_plural:
+                return self.id, obj.id[0]
+        return self.id, obj.id
 
     def __gt__(self, other):
-        return self.__cmp__(other) > 0
+        this, other = self._compare(other)
+        return this.__gt__(other)
 
     def __lt__(self, other):
-        return self.__cmp__(other) < 0
+        this, other = self._compare(other)
+        return this.__lt__(other)
 
     def __ge__(self, other):
-        return self.__cmp__(other) >= 0
+        this, other = self._compare(other)
+        return this.__ge__(other)
 
     def __le__(self, other):
-        return self.__cmp__(other) <= 0
+        this, other = self._compare(other)
+        return this.__le__(other)
 
     def __eq__(self, other):
-        return self.__cmp__(other) == 0
+        this, other = self._compare(other)
+        return this.__eq__(other)
 
     def __ne__(self, other):
-        return self.__cmp__(other) != 0
+        this, other = self._compare(other)
+        return this.__ne__(other)
 
     def clone(self):
-        return Message(*map(copy, (self.id, self.string, self.locations,
+        return Message(*list(map(copy, (self.id, self.string, self.locations,
                                    self.flags, self.auto_comments,
                                    self.user_comments, self.previous_id,
-                                   self.lineno, self.context)))
+                                   self.lineno, self.context))))
 
     def check(self, catalog=None):
         """Run various validation checks on the message.  Some validations
@@ -142,7 +145,7 @@ class Message(object):
         for checker in checkers:
             try:
                 checker(catalog, self)
-            except TranslationError, e:
+            except TranslationError as e:
                 errors.append(e)
         return errors
 
@@ -179,7 +182,7 @@ class Message(object):
         ids = self.id
         if not isinstance(ids, (list, tuple)):
             ids = [ids]
-        return bool(filter(None, [PYTHON_FORMAT.search(id) for id in ids]))
+        return bool([_f for _f in [PYTHON_FORMAT.search(id) for id in ids] if _f])
     python_format = property(python_format, doc="""\
         Whether the message contains Python-style parameters.
 
@@ -197,7 +200,7 @@ class TranslationError(Exception):
     translations are encountered."""
 
 
-DEFAULT_HEADER = u"""\
+DEFAULT_HEADER = """\
 # Translations template for PROJECT.
 # Copyright (C) YEAR ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
@@ -287,7 +290,7 @@ class Catalog(object):
 
     >>> catalog = Catalog(project='Foobar', version='1.0',
     ...                   copyright_holder='Foo Company')
-    >>> print catalog.header_comment #doctest: +ELLIPSIS
+    >>> print(catalog.header_comment) #doctest: +ELLIPSIS
     # Translations template for Foobar.
     # Copyright (C) ... Foo Company
     # This file is distributed under the same license as the Foobar project.
@@ -305,7 +308,7 @@ class Catalog(object):
     ... # This file is distributed under the same license as the PROJECT
     ... # project.
     ... #'''
-    >>> print catalog.header_comment
+    >>> print(catalog.header_comment)
     # The POT for my really cool Foobar project.
     # Copyright (C) 1990-2003 Foo Company
     # This file is distributed under the same license as the Foobar
@@ -348,7 +351,7 @@ class Catalog(object):
             name = name.lower()
             if name == 'project-id-version':
                 parts = value.split(' ')
-                self.project = u' '.join(parts[:-1])
+                self.project = ' '.join(parts[:-1])
                 self.version = parts[-1]
             elif name == 'report-msgid-bugs-to':
                 self.msgid_bugs_address = value
@@ -436,7 +439,7 @@ class Catalog(object):
     >>> catalog = Catalog(project='Foobar', version='1.0',
     ...                   creation_date=created)
     >>> for name, value in catalog.mime_headers:
-    ...     print '%s: %s' % (name, value)
+    ...     print('%s: %s' % (name, value))
     Project-Id-Version: Foobar 1.0
     Report-Msgid-Bugs-To: EMAIL@ADDRESS
     POT-Creation-Date: 1990-04-01 15:30+0000
@@ -456,7 +459,7 @@ class Catalog(object):
     ...                   last_translator='John Doe <jd@example.com>',
     ...                   language_team='de_DE <de@example.com>')
     >>> for name, value in catalog.mime_headers:
-    ...     print '%s: %s' % (name, value)
+    ...     print('%s: %s' % (name, value))
     Project-Id-Version: Foobar 1.0
     Report-Msgid-Bugs-To: EMAIL@ADDRESS
     POT-Creation-Date: 1990-04-01 15:30+0000
@@ -544,7 +547,7 @@ class Catalog(object):
         flags = set()
         if self.fuzzy:
             flags |= set(['fuzzy'])
-        yield Message(u'', '\n'.join(buf), flags=flags)
+        yield Message('', '\n'.join(buf), flags=flags)
         for key in self._messages:
             yield self._messages[key]
 
@@ -572,19 +575,19 @@ class Catalog(object):
         """Add or update the message with the specified ID.
 
         >>> catalog = Catalog()
-        >>> catalog[u'foo'] = Message(u'foo')
-        >>> catalog[u'foo']
-        <Message u'foo' (flags: [])>
+        >>> catalog['foo'] = Message('foo')
+        >>> catalog['foo']
+        <Message 'foo' (flags: [])>
 
         If a message with that ID is already in the catalog, it is updated
         to include the locations and flags of the new message.
 
         >>> catalog = Catalog()
-        >>> catalog[u'foo'] = Message(u'foo', locations=[('main.py', 1)])
-        >>> catalog[u'foo'].locations
+        >>> catalog['foo'] = Message('foo', locations=[('main.py', 1)])
+        >>> catalog['foo'].locations
         [('main.py', 1)]
-        >>> catalog[u'foo'] = Message(u'foo', locations=[('utils.py', 5)])
-        >>> catalog[u'foo'].locations
+        >>> catalog['foo'] = Message('foo', locations=[('utils.py', 5)])
+        >>> catalog['foo'].locations
         [('main.py', 1), ('utils.py', 5)]
 
         :param id: the message ID
@@ -610,14 +613,12 @@ class Catalog(object):
             # special treatment for the header message
             def _parse_header(header_string):
                 # message_from_string only works for str, not for unicode
-                headers = message_from_string(header_string.encode('utf8'))
+                headers = message_from_string(header_string)
                 decoded_headers = {}
-                for name, value in headers.items():
-                    name = name.decode('utf8')
-                    value = value.decode('utf8')
+                for name, value in list(headers.items()):
                     decoded_headers[name] = value
                 return decoded_headers
-            self.mime_headers = _parse_header(message.string).items()
+            self.mime_headers = list(_parse_header(message.string).items())
             self.header_comment = '\n'.join(['# %s' % comment for comment
                                              in message.user_comments])
             self.fuzzy = message.fuzzy
@@ -632,10 +633,10 @@ class Catalog(object):
         """Add or update the message with the specified ID.
 
         >>> catalog = Catalog()
-        >>> catalog.add(u'foo')
+        >>> catalog.add('foo')
         <Message ...>
-        >>> catalog[u'foo']
-        <Message u'foo' (flags: [])>
+        >>> catalog['foo']
+        <Message 'foo' (flags: [])>
 
         This method simply constructs a `Message` object with the given
         arguments and invokes `__setitem__` with that object.
@@ -671,7 +672,7 @@ class Catalog(object):
 
         :rtype: ``iterator``
         """
-        for message in self._messages.values():
+        for message in list(self._messages.values()):
             errors = message.check(catalog=self)
             if errors:
                 yield message, errors
@@ -709,11 +710,11 @@ class Catalog(object):
         >>> template.add(('salad', 'salads'), locations=[('util.py', 42)])
         <Message ...>
         >>> catalog = Catalog(locale='de_DE')
-        >>> catalog.add('blue', u'blau', locations=[('main.py', 98)])
+        >>> catalog.add('blue', 'blau', locations=[('main.py', 98)])
         <Message ...>
-        >>> catalog.add('head', u'Kopf', locations=[('util.py', 33)])
+        >>> catalog.add('head', 'Kopf', locations=[('util.py', 33)])
         <Message ...>
-        >>> catalog.add(('salad', 'salads'), (u'Salat', u'Salate'),
+        >>> catalog.add(('salad', 'salads'), ('Salat', 'Salate'),
         ...             locations=[('util.py', 38)])
         <Message ...>
 
@@ -728,13 +729,13 @@ class Catalog(object):
 
         >>> msg2 = catalog['blue']
         >>> msg2.string
-        u'blau'
+        'blau'
         >>> msg2.locations
         [('main.py', 100)]
 
         >>> msg3 = catalog['salad']
         >>> msg3.string
-        (u'Salat', u'Salate')
+        ('Salat', 'Salate')
         >>> msg3.locations
         [('util.py', 42)]
 
@@ -770,7 +771,7 @@ class Catalog(object):
                 fuzzy = True
                 fuzzy_matches.add(oldkey)
                 oldmsg = messages.get(oldkey)
-                if isinstance(oldmsg.id, basestring):
+                if isinstance(oldmsg.id, str):
                     message.previous_id = [oldmsg.id]
                 else:
                     message.previous_id = list(oldmsg.id)
@@ -781,7 +782,7 @@ class Catalog(object):
                 if not isinstance(message.string, (list, tuple)):
                     fuzzy = True
                     message.string = tuple(
-                        [message.string] + ([u''] * (len(message.id) - 1))
+                        [message.string] + ([''] * (len(message.id) - 1))
                     )
                 elif len(message.string) != self.num_plurals:
                     fuzzy = True
@@ -791,7 +792,7 @@ class Catalog(object):
                 message.string = message.string[0]
             message.flags |= oldmsg.flags
             if fuzzy:
-                message.flags |= set([u'fuzzy'])
+                message.flags |= set(['fuzzy'])
             self[message.id] = message
 
         for message in template:
@@ -807,7 +808,7 @@ class Catalog(object):
                         else:
                             matchkey = key
                         matches = get_close_matches(matchkey.lower().strip(),
-                                                    fuzzy_candidates.keys(), 1)
+                                                    list(fuzzy_candidates.keys()), 1)
                         if matches:
                             newkey = matches[0]
                             newctxt = fuzzy_candidates[newkey]

@@ -20,7 +20,7 @@ try:
     any = any
 except NameError:
     def any(iterable):
-        return filter(None, list(iterable))
+        return [_f for _f in list(iterable) if _f]
 
 try:
     import threading

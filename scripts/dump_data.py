@@ -36,7 +36,7 @@ def main():
         for key in args[1].split('.'):
             data = data[key]
     if isinstance(data, dict):
-        data = dict(data.items())
+        data = dict(list(data.items()))
     pprint(data)
 
 

@@ -19,7 +19,7 @@ import os
 import re
 import textwrap
 import time
-from itertools import izip, imap
+
 
 missing = object()
 
@@ -34,9 +34,9 @@ def distinct(iterable):
     Unlike when using sets for a similar effect, the original ordering of the
     items in the collection is preserved by this function.
 
-    >>> print list(distinct([1, 2, 1, 3, 4, 4]))
+    >>> print(list(distinct([1, 2, 1, 3, 4, 4])))
     [1, 2, 3, 4]
-    >>> print list(distinct('foobar'))
+    >>> print(list(distinct('foobar')))
     ['f', 'o', 'b', 'a', 'r']
 
     :param iterable: the iterable collection providing the data
@@ -51,7 +51,7 @@ def distinct(iterable):
 
 # Regexp to match python magic encoding line
 PYTHON_MAGIC_COMMENT_re = re.compile(
-    r'[ \t\f]* \# .* coding[=:][ \t]*([-\w.]+)', re.VERBOSE)
+    br'[ \t\f]* \# .* coding[=:][ \t]*([-\w.]+)', re.VERBOSE)
 def parse_encoding(fp):
     """Deduce the encoding of a source file from magic comment.
 
@@ -75,7 +75,7 @@ def parse_encoding(fp):
         if not m:
             try:
                 import parser
-                parser.suite(line1)
+                parser.suite(line1.decode())
             except (ImportError, SyntaxError):
                 # Either it's a real syntax error, in which case the source is
                 # not valid python source, or line2 is a continuation of line1,
@@ -93,7 +93,7 @@ def parse_encoding(fp):
                     "byte-order-mark and a magic encoding comment")
             return 'utf_8'
         elif m:
-            return m.group(1)
+            return m.group(1).decode()
         else:
             return None
     finally:
@@ -180,7 +180,7 @@ class odict(dict):
     """
     def __init__(self, data=None):
         dict.__init__(self, data or {})
-        self._keys = dict.keys(self)
+        self._keys = list(dict.keys(self))
 
     def __delitem__(self, key):
         dict.__delitem__(self, key)
@@ -205,10 +205,10 @@ class odict(dict):
         return d
 
     def items(self):
-        return zip(self._keys, self.values())
+        return list(zip(self._keys, list(self.values())))
 
     def iteritems(self):
-        return izip(self._keys, self.itervalues())
+        return zip(self._keys, iter(self.values()))
 
     def keys(self):
         return self._keys[:]
@@ -231,14 +231,14 @@ class odict(dict):
             self._keys.append(key)
 
     def update(self, dict):
-        for (key, val) in dict.items():
+        for (key, val) in list(dict.items()):
             self[key] = val
 
     def values(self):
-        return map(self.get, self._keys)
+        return list(map(self.get, self._keys))
 
     def itervalues(self):
-        return imap(self.get, self._keys)
+        return map(self.get, self._keys)
 
 
 try:

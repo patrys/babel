@@ -33,7 +33,7 @@ class DefaultLocaleTest(unittest.TestCase):
         return settings
     
     def _set_locale_settings(self, settings):
-        for name, value in settings.items():
+        for name, value in list(settings.items()):
             os.environ[name] = value
     
     def test_ignore_invalid_locales_in_lc_ctype(self):

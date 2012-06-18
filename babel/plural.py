@@ -54,7 +54,7 @@ class PluralRule(object):
         :raise RuleError: if the expression is malformed
         """
         if isinstance(rules, dict):
-            rules = rules.items()
+            rules = list(rules.items())
         found = set()
         self.abstract = []
         for key, expr in rules:
@@ -163,7 +163,7 @@ def to_python(rule):
     for tag, ast in PluralRule.parse(rule).abstract:
         result.append(' if (%s): return %r' % (to_python(ast), tag))
     result.append(' return %r' % _fallback_tag)
-    exec '\n'.join(result) in namespace
+    exec('\n'.join(result), namespace)
     return namespace['evaluate']
 
 
@@ -380,7 +380,8 @@ class _Compiler(object):
     output formats.
     """
 
-    def compile(self, (op, args)):
+    def compile(self, xxx_todo_changeme):
+        (op, args) = xxx_todo_changeme
         return getattr(self, 'compile_' + op)(*args)
 
     compile_n = lambda x: 'n'
@@ -411,7 +412,7 @@ class _GettextCompiler(_Compiler):
 
     def compile_relation(self, method, expr, range):
         expr = self.compile(expr)
-        min, max = map(self.compile, range[1])
+        min, max = list(map(self.compile, range[1]))
         return '(%s >= %s && %s <= %s)' % (expr, min, expr, max)
 
 

@@ -18,8 +18,8 @@
 """
 
 import os
-import cPickle as pickle
-from UserDict import DictMixin
+import pickle as pickle
+from collections import UserDict
 
 from babel.compat import threading
 
@@ -65,7 +65,7 @@ def load(name, merge_inherited=True):
     
     >>> d = load('en_US')
     >>> d['languages']['sv']
-    u'Swedish'
+    'Swedish'
     
     Note that the results are cached, and subsequent requests for the same
     locale return the same dictionary:
@@ -118,13 +118,13 @@ def merge(dict1, dict2):
     
     >>> d = {1: 'foo', 3: 'baz'}
     >>> merge(d, {1: 'Foo', 2: 'Bar'})
-    >>> items = d.items(); items.sort(); items
+    >>> sorted(d.items())
     [(1, 'Foo'), (2, 'Bar'), (3, 'baz')]
     
     :param dict1: the dictionary to merge into
     :param dict2: the dictionary containing the data that should be merged
     """
-    for key, val2 in dict2.items():
+    for key, val2 in list(dict2.items()):
         if val2 is not None:
             val1 = dict1.get(key)
             if isinstance(val2, dict):
@@ -178,19 +178,19 @@ class Alias(object):
         return data
 
 
-class LocaleDataDict(DictMixin, dict):
+class LocaleDataDict(UserDict):
     """Dictionary wrapper that automatically resolves aliases to the actual
     values.
     """
 
     def __init__(self, data, base=None):
-        dict.__init__(self, data)
+        super(LocaleDataDict, self).__init__(data)
         if base is None:
             base = data
         self.base = base
 
     def __getitem__(self, key):
-        orig = val = dict.__getitem__(self, key)
+        orig = val = super(LocaleDataDict, self).__getitem__(key)
         if isinstance(val, Alias): # resolve an alias
             val = val.resolve(self.base)
         if isinstance(val, tuple): # Merge a partial dict with an alias
@@ -204,4 +204,5 @@ class LocaleDataDict(DictMixin, dict):
         return val
 
     def copy(self):
-        return LocaleDataDict(dict.copy(self), base=self.base)
+        return LocaleDataDict(
+            super(LocaleDataDict, self).copy(), base=self.base)

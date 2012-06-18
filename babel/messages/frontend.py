@@ -14,7 +14,7 @@
 
 """Frontends for the message extraction functionality."""
 
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 from datetime import datetime
 from distutils import log
 from distutils.cmd import Command
@@ -24,7 +24,7 @@ import logging
 from optparse import OptionParser
 import os
 import shutil
-from StringIO import StringIO
+from io import StringIO
 import sys
 import tempfile
 
@@ -135,7 +135,7 @@ class compile_catalog(Command):
 
         for idx, (locale, po_file) in enumerate(po_files):
             mo_file = mo_files[idx]
-            infile = open(po_file, 'r')
+            infile = open(po_file, 'rb')
             try:
                 catalog = read_po(infile, locale)
             finally:
@@ -275,16 +275,16 @@ class extract_messages(Command):
                                        "are mutually exclusive")
 
         if not self.input_dirs:
-            self.input_dirs = dict.fromkeys([k.split('.',1)[0]
+            self.input_dirs = list(dict.fromkeys([k.split('.',1)[0]
                 for k in self.distribution.packages
-            ]).keys()
+            ]).keys())
 
         if self.add_comments:
             self._add_comments = self.add_comments.split(',')
 
     def run(self):
         mappings = self._get_mappings()
-        outfile = open(self.output_file, 'w')
+        outfile = open(self.output_file, 'wb')
         try:
             catalog = Catalog(project=self.distribution.get_name(),
                               version=self.distribution.get_version(),
@@ -292,7 +292,7 @@ class extract_messages(Command):
                               copyright_holder=self.copyright_holder,
                               charset=self.charset)
 
-            for dirname, (method_map, options_map) in mappings.items():
+            for dirname, (method_map, options_map) in list(mappings.items()):
                 def callback(filename, method, options):
                     if method == 'ignore':
                         return
@@ -300,7 +300,7 @@ class extract_messages(Command):
                     optstr = ''
                     if options:
                         optstr = ' (%s)' % ', '.join(['%s="%s"' % (k, v) for
-                                                      k, v in options.items()])
+                                                      k, v in list(options.items())])
                     log.info('extracting messages from %s%s', filepath, optstr)
 
                 extracted = extract_from_dir(dirname, method_map, options_map,
@@ -337,8 +337,8 @@ class extract_messages(Command):
 
         elif getattr(self.distribution, 'message_extractors', None):
             message_extractors = self.distribution.message_extractors
-            for dirname, mapping in message_extractors.items():
-                if isinstance(mapping, basestring):
+            for dirname, mapping in list(message_extractors.items()):
+                if isinstance(mapping, str):
                     method_map, options_map = parse_mapping(StringIO(mapping))
                 else:
                     method_map, options_map = [], {}
@@ -420,7 +420,7 @@ class init_catalog(Command):
                                        'new catalog')
         try:
             self._locale = Locale.parse(self.locale)
-        except UnknownLocaleError, e:
+        except UnknownLocaleError as e:
             raise DistutilsOptionError(e)
 
         if not self.output_file and not self.output_dir:
@@ -436,7 +436,7 @@ class init_catalog(Command):
         log.info('creating catalog %r based on %r', self.output_file,
                  self.input_file)
 
-        infile = open(self.input_file, 'r')
+        infile = open(self.input_file, 'rb')
         try:
             # Although reading from the catalog template, read_po must be fed
             # the locale in order to correctly calculate plurals
@@ -447,7 +447,7 @@ class init_catalog(Command):
         catalog.locale = self._locale
         catalog.fuzzy = False
 
-        outfile = open(self.output_file, 'w')
+        outfile = open(self.output_file, 'wb')
         try:
             write_po(outfile, catalog)
         finally:
@@ -538,7 +538,7 @@ class update_catalog(Command):
         if not domain:
             domain = os.path.splitext(os.path.basename(self.input_file))[0]
 
-        infile = open(self.input_file, 'U')
+        infile = open(self.input_file, 'Ub')
         try:
             template = read_po(infile)
         finally:
@@ -550,7 +550,7 @@ class update_catalog(Command):
         for locale, filename in po_files:
             log.info('updating catalog %r based on %r', filename,
                      self.input_file)
-            infile = open(filename, 'U')
+            infile = open(filename, 'Ub')
             try:
                 catalog = read_po(infile, locale=locale, domain=domain)
             finally:
@@ -561,7 +561,7 @@ class update_catalog(Command):
             tmpname = os.path.join(os.path.dirname(filename),
                                    tempfile.gettempprefix() +
                                    os.path.basename(filename))
-            tmpfile = open(tmpname, 'w')
+            tmpfile = open(tmpname, 'wb')
             try:
                 try:
                     write_po(tmpfile, catalog,
@@ -629,13 +629,13 @@ class CommandLineInterface(object):
             identifiers = localedata.locale_identifiers()
             longest = max([len(identifier) for identifier in identifiers])
             identifiers.sort()
-            format = u'%%-%ds %%s' % (longest + 1)
+            format = '%%-%ds %%s' % (longest + 1)
             for identifier in identifiers:
                 locale = Locale.parse(identifier)
                 output = format % (identifier, locale.english_name)
-                print output.encode(sys.stdout.encoding or
+                print(output.encode(sys.stdout.encoding or
                                     getpreferredencoding() or
-                                    'ascii', 'replace')
+                                    'ascii', 'replace'))
             return 0
 
         if not args:
@@ -664,14 +664,14 @@ class CommandLineInterface(object):
         handler.setFormatter(formatter)
 
     def _help(self):
-        print self.parser.format_help()
-        print "commands:"
+        print(self.parser.format_help())
+        print("commands:")
         longest = max([len(command) for command in self.commands])
         format = "  %%-%ds %%s" % max(8, longest + 1)
-        commands = self.commands.items()
+        commands = list(self.commands.items())
         commands.sort()
         for name, description in commands:
-            print format % (name, description)
+            print(format % (name, description))
 
     def compile(self, argv):
         """Subcommand for compiling a message catalog to a MO file.
@@ -745,7 +745,7 @@ class CommandLineInterface(object):
 
         for idx, (locale, po_file) in enumerate(po_files):
             mo_file = mo_files[idx]
-            infile = open(po_file, 'r')
+            infile = open(po_file, 'rb')
             try:
                 catalog = read_po(infile, locale)
             finally:
@@ -848,7 +848,7 @@ class CommandLineInterface(object):
             parser.error('incorrect number of arguments')
 
         if options.output not in (None, '-'):
-            outfile = open(options.output, 'w')
+            outfile = open(options.output, 'wb')
         else:
             outfile = sys.stdout
 
@@ -898,7 +898,7 @@ class CommandLineInterface(object):
                     optstr = ''
                     if options:
                         optstr = ' (%s)' % ', '.join(['%s="%s"' % (k, v) for
-                                                      k, v in options.items()])
+                                                      k, v in list(options.items())])
                     self.log.info('extracting messages from %s%s', filepath,
                                   optstr)
 
@@ -951,7 +951,7 @@ class CommandLineInterface(object):
             parser.error('you must provide a locale for the new catalog')
         try:
             locale = Locale.parse(options.locale)
-        except UnknownLocaleError, e:
+        except UnknownLocaleError as e:
             parser.error(e)
 
         if not options.input_file:
@@ -967,7 +967,7 @@ class CommandLineInterface(object):
         if not os.path.exists(os.path.dirname(options.output_file)):
             os.makedirs(os.path.dirname(options.output_file))
 
-        infile = open(options.input_file, 'r')
+        infile = open(options.input_file, 'rb')
         try:
             # Although reading from the catalog template, read_po must be fed
             # the locale in order to correctly calculate plurals
@@ -981,7 +981,7 @@ class CommandLineInterface(object):
         self.log.info('creating catalog %r based on %r', options.output_file,
                       options.input_file)
 
-        outfile = open(options.output_file, 'w')
+        outfile = open(options.output_file, 'wb')
         try:
             write_po(outfile, catalog)
         finally:
@@ -1053,7 +1053,7 @@ class CommandLineInterface(object):
         if not domain:
             domain = os.path.splitext(os.path.basename(options.input_file))[0]
 
-        infile = open(options.input_file, 'U')
+        infile = open(options.input_file, 'Ub')
         try:
             template = read_po(infile)
         finally:
@@ -1065,7 +1065,7 @@ class CommandLineInterface(object):
         for locale, filename in po_files:
             self.log.info('updating catalog %r based on %r', filename,
                           options.input_file)
-            infile = open(filename, 'U')
+            infile = open(filename, 'Ub')
             try:
                 catalog = read_po(infile, locale=locale, domain=domain)
             finally:
@@ -1076,7 +1076,7 @@ class CommandLineInterface(object):
             tmpname = os.path.join(os.path.dirname(filename),
                                    tempfile.gettempprefix() +
                                    os.path.basename(filename))
-            tmpfile = open(tmpname, 'w')
+            tmpfile = open(tmpname, 'wb')
             try:
                 try:
                     write_po(tmpfile, catalog,
@@ -1182,9 +1182,8 @@ def parse_keywords(strings=[]):
     """Parse keywords specifications from the given list of strings.
 
     >>> kw = parse_keywords(['_', 'dgettext:2', 'dngettext:2,3', 'pgettext:1c,2']).items()
-    >>> kw.sort()
-    >>> for keyword, indices in kw:
-    ...     print (keyword, indices)
+    >>> for keyword, indices in sorted(kw):
+    ...     print((keyword, indices))
     ('_', None)
     ('dgettext', (2,))
     ('dngettext', (2, 3))

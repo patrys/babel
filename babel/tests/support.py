@@ -13,7 +13,7 @@
 
 import doctest
 import os
-from StringIO import StringIO
+from io import BytesIO
 import unittest
 
 from babel import support
@@ -43,8 +43,8 @@ class TranslationsTestCase(unittest.TestCase):
             catalog1.add(ids, **kwargs)            
         for ids, kwargs in messages2:
             catalog2.add(ids, **kwargs)
-        catalog1_fp = StringIO()
-        catalog2_fp = StringIO()
+        catalog1_fp = BytesIO()
+        catalog2_fp = BytesIO()
         write_mo(catalog1_fp, catalog1)
         catalog1_fp.seek(0)
         write_mo(catalog2_fp, catalog2)
@@ -63,15 +63,10 @@ class TranslationsTestCase(unittest.TestCase):
         self.assertEqualTypeToo('VohCTX', self.translations.pgettext('foo',
                                                                      'foo'))
 
-    def test_upgettext(self):
-        self.assertEqualTypeToo(u'Voh', self.translations.ugettext('foo'))
-        self.assertEqualTypeToo(u'VohCTX', self.translations.upgettext('foo',
-                                                                       'foo'))
-
     def test_lpgettext(self):
-        self.assertEqualTypeToo('Voh', self.translations.lgettext('foo'))
-        self.assertEqualTypeToo('VohCTX', self.translations.lpgettext('foo',
-                                                                      'foo'))
+        self.assertEqualTypeToo(b'Voh', self.translations.lgettext('foo'))
+        self.assertEqualTypeToo(b'VohCTX', self.translations.lpgettext('foo',
+                                                                       'foo'))
 
     def test_npgettext(self):
         self.assertEqualTypeToo('Voh1',
@@ -85,27 +80,15 @@ class TranslationsTestCase(unittest.TestCase):
                                 self.translations.npgettext('foo', 'foo1',
                                                             'foos1', 2))
 
-    def test_unpgettext(self):
-        self.assertEqualTypeToo(u'Voh1',
-                                self.translations.ungettext('foo1', 'foos1', 1))
-        self.assertEqualTypeToo(u'Vohs1',
-                                self.translations.ungettext('foo1', 'foos1', 2))
-        self.assertEqualTypeToo(u'VohCTX1',
-                                self.translations.unpgettext('foo', 'foo1',
-                                                             'foos1', 1))
-        self.assertEqualTypeToo(u'VohsCTX1',
-                                self.translations.unpgettext('foo', 'foo1',
-                                                             'foos1', 2))
-
     def test_lnpgettext(self):
-        self.assertEqualTypeToo('Voh1',
+        self.assertEqualTypeToo(b'Voh1',
                                 self.translations.lngettext('foo1', 'foos1', 1))
-        self.assertEqualTypeToo('Vohs1',
+        self.assertEqualTypeToo(b'Vohs1',
                                 self.translations.lngettext('foo1', 'foos1', 2))
-        self.assertEqualTypeToo('VohCTX1',
+        self.assertEqualTypeToo(b'VohCTX1',
                                 self.translations.lnpgettext('foo', 'foo1',
                                                              'foos1', 1))
-        self.assertEqualTypeToo('VohsCTX1',
+        self.assertEqualTypeToo(b'VohsCTX1',
                                 self.translations.lnpgettext('foo', 'foo1',
                                                              'foos1', 2))
 
@@ -115,17 +98,11 @@ class TranslationsTestCase(unittest.TestCase):
         self.assertEqualTypeToo(
             'VohCTXD', self.translations.dpgettext('messages1', 'foo', 'foo'))
 
-    def test_dupgettext(self):
-        self.assertEqualTypeToo(
-            u'VohD', self.translations.dugettext('messages1', 'foo'))
-        self.assertEqualTypeToo(
-            u'VohCTXD', self.translations.dupgettext('messages1', 'foo', 'foo'))
-
     def test_ldpgettext(self):
         self.assertEqualTypeToo(
-            'VohD', self.translations.ldgettext('messages1', 'foo'))
+            b'VohD', self.translations.ldgettext('messages1', 'foo'))
         self.assertEqualTypeToo(
-            'VohCTXD', self.translations.ldpgettext('messages1', 'foo', 'foo'))
+            b'VohCTXD', self.translations.ldpgettext('messages1', 'foo', 'foo'))
 
     def test_dnpgettext(self):
         self.assertEqualTypeToo(
@@ -139,29 +116,17 @@ class TranslationsTestCase(unittest.TestCase):
             'VohsCTXD1', self.translations.dnpgettext('messages1', 'foo', 'foo1',
                                                       'foos1', 2))
 
-    def test_dunpgettext(self):
-        self.assertEqualTypeToo(
-            u'VohD1', self.translations.dungettext('messages1', 'foo1', 'foos1', 1))
-        self.assertEqualTypeToo(
-            u'VohsD1', self.translations.dungettext('messages1', 'foo1', 'foos1', 2))
-        self.assertEqualTypeToo(
-            u'VohCTXD1', self.translations.dunpgettext('messages1', 'foo', 'foo1',
-                                                       'foos1', 1))
-        self.assertEqualTypeToo(
-            u'VohsCTXD1', self.translations.dunpgettext('messages1', 'foo', 'foo1',
-                                                        'foos1', 2))
-
     def test_ldnpgettext(self):
         self.assertEqualTypeToo(
-            'VohD1', self.translations.ldngettext('messages1', 'foo1', 'foos1', 1))
+            b'VohD1', self.translations.ldngettext('messages1', 'foo1', 'foos1', 1))
         self.assertEqualTypeToo(
-            'VohsD1', self.translations.ldngettext('messages1', 'foo1', 'foos1', 2))
+            b'VohsD1', self.translations.ldngettext('messages1', 'foo1', 'foos1', 2))
         self.assertEqualTypeToo(
-            'VohCTXD1', self.translations.ldnpgettext('messages1', 'foo', 'foo1',
-                                                      'foos1', 1))
+            b'VohCTXD1', self.translations.ldnpgettext('messages1', 'foo', 'foo1',
+                                                       'foos1', 1))
         self.assertEqualTypeToo(
-            'VohsCTXD1', self.translations.ldnpgettext('messages1', 'foo', 'foo1',
-                                                       'foos1', 2))
+            b'VohsCTXD1', self.translations.ldnpgettext('messages1', 'foo', 'foo1',
+                                                        'foos1', 2))
 
 
 class LazyProxyTestCase(unittest.TestCase):

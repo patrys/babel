@@ -61,7 +61,7 @@ def _strip_comment_tags(comments, tags):
             if line.startswith(tag):
                 return line[len(tag):].strip()
         return line
-    comments[:] = map(_strip, comments)
+    comments[:] = list(map(_strip, comments))
 
 
 def extract_from_dir(dirname=os.getcwd(), method_map=DEFAULT_MAPPING,
@@ -155,7 +155,7 @@ def extract_from_dir(dirname=os.getcwd(), method_map=DEFAULT_MAPPING,
                 if pathmatch(pattern, filename):
                     filepath = os.path.join(absname, filename)
                     options = {}
-                    for opattern, odict in options_map.items():
+                    for opattern, odict in list(options_map.items()):
                         if pathmatch(opattern, filename):
                             options = odict
                     if callback:
@@ -193,7 +193,7 @@ def extract_from_file(method, filename, keywords=DEFAULT_KEYWORDS,
     :return: the list of extracted messages
     :rtype: `list`
     """
-    fileobj = open(filename, 'U')
+    fileobj = open(filename, 'Ub')
     try:
         return list(extract(method, fileobj, keywords, comment_tags, options,
                             strip_comment_tags))
@@ -213,15 +213,15 @@ def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
     The implementation dispatches the actual extraction to plugins, based on the
     value of the ``method`` parameter.
 
-    >>> source = '''# foo module
+    >>> source = b'''# foo module
     ... def run(argv):
     ...    print _('Hello, world!')
     ... '''
 
-    >>> from StringIO import StringIO
-    >>> for message in extract('python', StringIO(source)):
-    ...     print message
-    (3, u'Hello, world!', [], None)
+    >>> from io import BytesIO
+    >>> for message in extract('python', BytesIO(source)):
+    ...     print(message)
+    (3, 'Hello, world!', [], None)
 
     :param method: a string specifying the extraction method (.e.g. "python");
                    if this is a simple name, the extraction function will be
@@ -267,7 +267,7 @@ def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
     if func is None:
         raise ValueError('Unknown extraction method %r' % method)
 
-    results = func(fileobj, keywords.keys(), comment_tags,
+    results = func(fileobj, list(keywords.keys()), comment_tags,
                    options=options or {})
 
     for lineno, funcname, messages, comments in results:
@@ -312,7 +312,7 @@ def extract(method, fileobj, keywords=DEFAULT_KEYWORDS, comment_tags=(),
             # An empty string msgid isn't valid, emit a warning
             where = '%s:%i' % (hasattr(fileobj, 'name') and \
                                    fileobj.name or '(unknown)', lineno)
-            print >> sys.stderr, empty_msgid_warning % where
+            print(empty_msgid_warning % where, file=sys.stderr)
             continue
 
         messages = tuple(msgs)
@@ -354,7 +354,10 @@ def extract_python(fileobj, keywords, comment_tags, options):
 
     encoding = parse_encoding(fileobj) or options.get('encoding', 'iso-8859-1')
 
-    tokens = generate_tokens(fileobj.readline)
+    def readline():
+        return fileobj.readline().decode(encoding)
+
+    tokens = generate_tokens(readline)
     for tok, value, (lineno, _), _, _ in tokens:
         if call_stack == -1 and tok == NAME and value in ('def', 'class'):
             in_def = True
@@ -373,7 +376,7 @@ def extract_python(fileobj, keywords, comment_tags, options):
             continue
         elif call_stack == -1 and tok == COMMENT:
             # Strip the comment token from the line
-            value = value.decode(encoding)[1:].strip()
+            value = value[1:].strip()
             if in_translator_comments and \
                     translator_comments[-1][0] == lineno - 1:
                 # We're already inside a translator comment, continue appending
@@ -419,8 +422,6 @@ def extract_python(fileobj, keywords, comment_tags, options):
                 # aid=617979&group_id=5470
                 value = eval('# coding=%s\n%s' % (encoding, value),
                              {'__builtins__':{}}, {})
-                if isinstance(value, str):
-                    value = value.decode(encoding)
                 buf.append(value)
             elif tok == OP and value == ',':
                 if buf:

@@ -12,7 +12,7 @@
 # individuals. For the exact contribution history, see the revision
 # history and logs, available at http://babel.edgewall.org/log/.
 
-import cPickle as pickle
+import pickle as pickle
 from optparse import OptionParser
 import os
 import re
@@ -36,7 +36,7 @@ def _text(elem):
     for child in elem:
         buf.append(_text(child))
     buf.append(elem.tail or '')
-    return u''.join(filter(None, buf)).strip()
+    return ''.join([_f for _f in buf if _f]).strip()
 
 
 NAME_RE = re.compile(r"^\w+$")
@@ -114,7 +114,7 @@ def main():
 
     # Resolve territory containment
     territory_containment = {}
-    region_items = regions.items()
+    region_items = list(regions.items())
     region_items.sort()
     for group, territory_list in region_items:
         for territory in territory_list:
@@ -129,14 +129,14 @@ def main():
     for elem in prsup.findall('.//plurals/pluralRules'):
         rules = []
         for rule in elem.findall('pluralRule'):
-            rules.append((rule.attrib['count'], unicode(rule.text)))
+            rules.append((rule.attrib['count'], str(rule.text)))
         pr = PluralRule(rules)
         for locale in elem.attrib['locales'].split():
             plural_rules[locale] = pr
 
     filenames = os.listdir(os.path.join(srcdir, 'main'))
     filenames.remove('root.xml')
-    filenames.sort(lambda a,b: len(a)-len(b))
+    filenames.sort(key=lambda a: len(a))
     filenames.insert(0, 'root.xml')
 
     for filename in filenames:
@@ -144,7 +144,7 @@ def main():
         if ext != '.xml':
             continue
 
-        print>>sys.stderr, 'Processing input file %r' % filename
+        print('Processing input file %r' % filename, file=sys.stderr)
         tree = parse(os.path.join(srcdir, 'main', filename))
         data = {}
 
@@ -152,7 +152,7 @@ def main():
         elem = tree.find('.//identity/language')
         if elem is not None:
             language = elem.attrib['type']
-        print>>sys.stderr, '  Language:  %r' % language
+        print('  Language:  %r' % language, file=sys.stderr)
 
         territory = None
         elem = tree.find('.//identity/territory')
@@ -160,15 +160,15 @@ def main():
             territory = elem.attrib['type']
         else:
             territory = '001' # world
-        print>>sys.stderr, '  Territory: %r' % territory
+        print('  Territory: %r' % territory, file=sys.stderr)
         regions = territory_containment.get(territory, [])
-        print>>sys.stderr, '  Regions:    %r' % regions
+        print('  Regions:    %r' % regions, file=sys.stderr)
 
         # plural rules
-        locale_id = '_'.join(filter(None, [
+        locale_id = '_'.join([_f for _f in [
             language,
             territory != '001' and territory or None
-        ]))
+        ] if _f])
         if locale_id in plural_rules:
             data['plural_form'] = plural_rules[locale_id]
 
@@ -230,15 +230,15 @@ def main():
         zone_formats = data.setdefault('zone_formats', {})
         for elem in tree.findall('.//timeZoneNames/gmtFormat'):
             if 'draft' not in elem.attrib and 'alt' not in elem.attrib:
-                zone_formats['gmt'] = unicode(elem.text).replace('{0}', '%s')
+                zone_formats['gmt'] = str(elem.text).replace('{0}', '%s')
                 break
         for elem in tree.findall('.//timeZoneNames/regionFormat'):
             if 'draft' not in elem.attrib and 'alt' not in elem.attrib:
-                zone_formats['region'] = unicode(elem.text).replace('{0}', '%s')
+                zone_formats['region'] = str(elem.text).replace('{0}', '%s')
                 break
         for elem in tree.findall('.//timeZoneNames/fallbackFormat'):
             if 'draft' not in elem.attrib and 'alt' not in elem.attrib:
-                zone_formats['fallback'] = unicode(elem.text) \
+                zone_formats['fallback'] = str(elem.text) \
                     .replace('{0}', '%(0)s').replace('{1}', '%(1)s')
                 break
 
@@ -247,11 +247,11 @@ def main():
             info = {}
             city = elem.findtext('exemplarCity')
             if city:
-                info['city'] = unicode(city)
+                info['city'] = str(city)
             for child in elem.findall('long/*'):
-                info.setdefault('long', {})[child.tag] = unicode(child.text)
+                info.setdefault('long', {})[child.tag] = str(child.text)
             for child in elem.findall('short/*'):
-                info.setdefault('short', {})[child.tag] = unicode(child.text)
+                info.setdefault('short', {})[child.tag] = str(child.text)
             time_zones[elem.attrib['type']] = info
 
         meta_zones = data.setdefault('meta_zones', {})
@@ -259,11 +259,11 @@ def main():
             info = {}
             city = elem.findtext('exemplarCity')
             if city:
-                info['city'] = unicode(city)
+                info['city'] = str(city)
             for child in elem.findall('long/*'):
-                info.setdefault('long', {})[child.tag] = unicode(child.text)
+                info.setdefault('long', {})[child.tag] = str(child.text)
             for child in elem.findall('short/*'):
-                info.setdefault('short', {})[child.tag] = unicode(child.text)
+                info.setdefault('short', {})[child.tag] = str(child.text)
             info['common'] = elem.findtext('commonlyUsed') == 'true'
             meta_zones[elem.attrib['type']] = info
 
@@ -284,7 +284,7 @@ def main():
                             if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                                     and int(elem.attrib['type']) in widths:
                                 continue
-                            widths[int(elem.attrib.get('type'))] = unicode(elem.text)
+                            widths[int(elem.attrib.get('type'))] = str(elem.text)
                         elif elem.tag == 'alias':
                             ctxts[width_type] = Alias(
                                 _translate_alias(['months', ctxt_type, width_type],
@@ -304,7 +304,7 @@ def main():
                             if ('draft' in elem.attrib or 'alt' not in elem.attrib) \
                                     and dtype in widths:
                                 continue
-                            widths[dtype] = unicode(elem.text)
+                            widths[dtype] = str(elem.text)
                         elif elem.tag == 'alias':
                             ctxts[width_type] = Alias(
                                 _translate_alias(['days', ctxt_type, width_type],
@@ -323,7 +323,7 @@ def main():
                             if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                                     and int(elem.attrib['type']) in widths:
                                 continue
-                            widths[int(elem.attrib['type'])] = unicode(elem.text)
+                            widths[int(elem.attrib['type'])] = str(elem.text)
                         elif elem.tag == 'alias':
                             ctxts[width_type] = Alias(
                                 _translate_alias(['quarters', ctxt_type, width_type],
@@ -339,7 +339,7 @@ def main():
                         if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                                 and int(elem.attrib['type']) in widths:
                             continue
-                        widths[int(elem.attrib.get('type'))] = unicode(elem.text)
+                        widths[int(elem.attrib.get('type'))] = str(elem.text)
                     elif elem.tag == 'alias':
                         eras[width_type] = Alias(
                             _translate_alias(['eras', width_type],
@@ -352,12 +352,12 @@ def main():
                 if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                         and elem.tag in periods:
                     continue
-                periods[elem.tag] = unicode(elem.text)
+                periods[elem.tag] = str(elem.text)
             for elem in calendar.findall('pm'):
                 if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                         and elem.tag in periods:
                     continue
-                periods[elem.tag] = unicode(elem.text)
+                periods[elem.tag] = str(elem.text)
 
             date_formats = data.setdefault('date_formats', {})
             for format in calendar.findall('dateFormats'):
@@ -368,9 +368,9 @@ def main():
                             continue
                         try:
                             date_formats[elem.attrib.get('type')] = \
-                                dates.parse_pattern(unicode(elem.findtext('dateFormat/pattern')))
-                        except ValueError, e:
-                            print>>sys.stderr, 'ERROR: %s' % e
+                                dates.parse_pattern(str(elem.findtext('dateFormat/pattern')))
+                        except ValueError as e:
+                            print('ERROR: %s' % e, file=sys.stderr)
                     elif elem.tag == 'alias':
                         date_formats = Alias(_translate_alias(
                             ['date_formats'], elem.attrib['path'])
@@ -385,9 +385,9 @@ def main():
                             continue
                         try:
                             time_formats[elem.attrib.get('type')] = \
-                                dates.parse_pattern(unicode(elem.findtext('timeFormat/pattern')))
-                        except ValueError, e:
-                            print>>sys.stderr, 'ERROR: %s' % e
+                                dates.parse_pattern(str(elem.findtext('timeFormat/pattern')))
+                        except ValueError as e:
+                            print('ERROR: %s' % e, file=sys.stderr)
                     elif elem.tag == 'alias':
                         time_formats = Alias(_translate_alias(
                             ['time_formats'], elem.attrib['path'])
@@ -402,9 +402,9 @@ def main():
                             continue
                         try:
                             datetime_formats[elem.attrib.get('type')] = \
-                                unicode(elem.findtext('dateTimeFormat/pattern'))
-                        except ValueError, e:
-                            print>>sys.stderr, 'ERROR: %s' % e
+                                str(elem.findtext('dateTimeFormat/pattern'))
+                        except ValueError as e:
+                            print('ERROR: %s' % e, file=sys.stderr)
                     elif elem.tag == 'alias':
                         datetime_formats = Alias(_translate_alias(
                             ['datetime_formats'], elem.attrib['path'])
@@ -416,14 +416,14 @@ def main():
         for elem in tree.findall('.//numbers/symbols/*'):
             if ('draft' in elem.attrib or 'alt' in elem.attrib):
                 continue
-            number_symbols[elem.tag] = unicode(elem.text)
+            number_symbols[elem.tag] = str(elem.text)
 
         decimal_formats = data.setdefault('decimal_formats', {})
         for elem in tree.findall('.//decimalFormats/decimalFormatLength'):
             if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                     and elem.attrib.get('type') in decimal_formats:
                 continue
-            pattern = unicode(elem.findtext('decimalFormat/pattern'))
+            pattern = str(elem.findtext('decimalFormat/pattern'))
             decimal_formats[elem.attrib.get('type')] = numbers.parse_pattern(pattern)
 
         scientific_formats = data.setdefault('scientific_formats', {})
@@ -431,7 +431,7 @@ def main():
             if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                     and elem.attrib.get('type') in scientific_formats:
                 continue
-            pattern = unicode(elem.findtext('scientificFormat/pattern'))
+            pattern = str(elem.findtext('scientificFormat/pattern'))
             scientific_formats[elem.attrib.get('type')] = numbers.parse_pattern(pattern)
 
         currency_formats = data.setdefault('currency_formats', {})
@@ -439,7 +439,7 @@ def main():
             if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                     and elem.attrib.get('type') in currency_formats:
                 continue
-            pattern = unicode(elem.findtext('currencyFormat/pattern'))
+            pattern = str(elem.findtext('currencyFormat/pattern'))
             currency_formats[elem.attrib.get('type')] = numbers.parse_pattern(pattern)
 
         percent_formats = data.setdefault('percent_formats', {})
@@ -447,7 +447,7 @@ def main():
             if ('draft' in elem.attrib or 'alt' in elem.attrib) \
                     and elem.attrib.get('type') in percent_formats:
                 continue
-            pattern = unicode(elem.findtext('percentFormat/pattern'))
+            pattern = str(elem.findtext('percentFormat/pattern'))
             percent_formats[elem.attrib.get('type')] = numbers.parse_pattern(pattern)
 
         currency_names = data.setdefault('currency_names', {})
@@ -459,12 +459,12 @@ def main():
                 if ('draft' in name.attrib or 'count' in name.attrib) \
                         and code in currency_names:
                     continue
-                currency_names[code] = unicode(name.text)
+                currency_names[code] = str(name.text)
             # TODO: support choice patterns for currency symbol selection
             symbol = elem.find('symbol')
             if symbol is not None and 'draft' not in symbol.attrib \
                     and 'choice' not in symbol.attrib:
-                currency_symbols[code] = unicode(symbol.text)
+                currency_symbols[code] = str(symbol.text)
 
         # <units>
 
@@ -474,7 +474,7 @@ def main():
             unit_pattern = unit_patterns.setdefault(unit_type, {})
             for pattern in elem.findall('unitPattern'):
                 unit_patterns[unit_type][pattern.attrib['count']] = \
-                        unicode(pattern.text)
+                        str(pattern.text)
 
         outfile = open(os.path.join(destdir, 'localedata', stem + '.dat'), 'wb')
         try:
