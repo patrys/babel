@@ -37,8 +37,6 @@ DEFAULT_KEYWORDS = {
     '_': None,
     'gettext': None,
     'ngettext': (1, 2),
-    'ugettext': None,
-    'ungettext': (1, 2),
     'dgettext': (2,),
     'dngettext': (2, 3),
     'N_': None,
